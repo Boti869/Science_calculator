@@ -1,4 +1,3 @@
-//gcc -Wall -g main.c basic-calc.c electrics-c/electrical-laws.c electrics-c/initLaws.c -o calculator
 #include"../header_files/electrical-laws.h"
 #include"../header_files/initLaws.h"
 #include<stdio.h>

@@ -11,14 +11,16 @@ int main() {
     int use_case;
     printf("Select a use case:\n"
         "1. Basic calculator\n"
-        "2. Ohm's Law\n");
+        "2. Science calculator\n"
+        "3. Ohm's Law\n");
 
     scanf("%d", &use_case);
     getchar();
 
     switch(use_case) {
         case 1: calc(); break;
-        case 2: initOhmLaws(); break;
+        case 2: sciCalc(); break;
+        case 3: initOhmLaws(); break;
     }
     return 0;
 }
