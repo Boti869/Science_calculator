@@ -8,36 +8,36 @@ double calc() {
     double num2;
     char op;
 
-    printf("Enter the first number: ");
+    wprintf(L"Enter the first number: ");
     scanf("%lf", &num1);
 
-    printf("Enter the operator: ");
+    wprintf(L"Enter the operator: ");
     scanf(" %c", &op);
 
-    printf("Enter the second number: ");
+    wprintf(L"Enter the second number: ");
     scanf("%lf", &num2);
 
     if(op == '+') {
-        printf("%f", num1 + num2);
+       wprintf(L"%f", num1 + num2);
         return num1 + num2;
     }
     else if(op == '-') {
-        printf("%f", num1 - num2);
+        wprintf(L"%f", num1 - num2);
         return num1 - num2;
     }
     else if(op == '*') {
-        printf("%.5f", num1 * num2);
+        wprintf(L"%.5f", num1 * num2);
         return num1 * num2;
     }
     else if(op == '/') {
-        if(num2 == 0){printf("Cannot divide by zero");}
+        if(num2 == 0){wprintf(L"Cannot divide by zero");}
         else{   
-        printf("%.5f", num1 / num2);
+        wprintf(L"%.5f", num1 / num2);
         return num1 / num2;}
     }
     else if(op == '^') {
-        printf("%.5f", pow(num1, num2));
+        wprintf(L"%.5f", pow(num1, num2));
         return pow(num1, num2);
     }
-    else{printf("invalid operator");}
+    else{wprintf(L"invalid operator");}
 }

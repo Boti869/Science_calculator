@@ -1,21 +1,25 @@
 #include"../header_files/electrical-laws.h"
 #include"../header_files/constants.h"
+#include"../header_files/help.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
 #include<string.h>
+#include<wchar.h>
+#include<locale.h>
 
 double applyOhmLaw(double voltage, double resistance, double current) {
         if (voltage == 0) {
         voltage = current * resistance;
-        printf("Voltage = %f V\n", voltage);
+        pretty_print(voltage, 'V', 'n');
     } else if (current == 0) {
         current = voltage / resistance;
-        printf("Current = %f A\n", current);
+        pretty_print(current, 'A', 'n');
     } else if (resistance == 0) {
         resistance = voltage / current;
-        printf("Resistance = %f Ω\n", resistance);
+        wchar_t ohm = L'Ω';
+        pretty_print(resistance, ohm, 'y');
     } else {
-        printf("All values provided, nothing to calculate.\n");
+        wprintf(L"All values provided, nothing to calculate.\n");
     }
 }
