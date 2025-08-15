@@ -18,4 +18,4 @@ int precedence(char op);
 int is_right_assoc(char op);
 void shunting_yard(const char *input, Token output[], int *out_count);
 double evaluate_postfix(Token output[], int out_count);
-double pretty_print(double num, wchar_t unit, char mode);
+double pretty_print(double num, wchar_t unit);

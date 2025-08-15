@@ -1,3 +1,3 @@
 #pragma once
 
-double applyOhmLaw(double voltage, double resistance, double current);
+void applyOhmLaw(double voltage, double resistance, double current, double power);

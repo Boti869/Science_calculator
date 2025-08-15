@@ -7,22 +7,43 @@
 
 double initOhmLaws() {
     char buffer[100];
-    double voltage, resistance, current;
+    double voltage, resistance, current, power;
+    wprintf(L"0 0 0 0 to exit\n");
     while (1) {
-    wprintf(L"Enter numbers: Voltage, Resistance, Current (with spaces)\n"
-           "Enter 0 in place of unknown:");
+    wprintf(L"                            Voltage | Resistance | Current | Power |  (with spaces)\n"
+            "Enter 0 in place of unknown: ");
     fgets(buffer, 100, stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
+
     voltage = atof(strtok(buffer, " "));
     resistance = atof(strtok(NULL, " "));
     current = atof(strtok(NULL, " "));
-    if(resistance < 0) {
+    power = atof(strtok(NULL, " "));
+        
+    if (voltage == 0 && resistance == 0 && current == 0 && power == 0) {
+        wprintf(L"Exiting....\n");
+        return 0; 
+    }
+
+    int nozero = 0;
+    if (voltage != 0) nozero++;
+    if (resistance != 0) nozero++;
+    if (current != 0) nozero++;
+    if (power != 0) nozero++;
+    
+    if(nozero < 2 ){
+        wprintf(L"Not enough data provided.\n");
+        fflush(stdin);
+        continue; 
+    }
+    if (resistance < 0 || power < 0) {
         wprintf(L"Resistance cannot be negative in Ohm's Law\n");
         continue; 
     }
-    else if((voltage || current || resistance) == '\0'){
-        continue; 
+    if (voltage != 0 && resistance != 0 && current != 0 && power != 0) {
+        wprintf(L"All values provided, nothing to calculate.\n");
+        continue;
     }
-    return applyOhmLaw(voltage, resistance, current);
+    applyOhmLaw(voltage, resistance, current, power);
     }
 }

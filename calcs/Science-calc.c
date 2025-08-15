@@ -13,13 +13,14 @@ double sciCalc() {
     char expr[256];
     wprintf(L"Enter expression: ");
     fgets(expr, sizeof(expr), stdin);
+    expr[strcspn(expr, "\n")] = '\0';
 
     Token output[MAX_TOKENS];
     int out_count;
     shunting_yard(expr, output, &out_count);
 
     double result = evaluate_postfix(output, out_count);
-    pretty_print(result, '\0', 'n');
+    pretty_print(result, '\0');
 
     return 0;
 }

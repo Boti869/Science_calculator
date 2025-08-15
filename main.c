@@ -18,7 +18,7 @@ int main() {
     wprintf(L"Select a use case:\n"
         "1. Basic calculator\n"
         "2. Science calculator\n"
-        "3. Ohm's Law\n");
+        "3. Basic electrical calculations (V, R, I and P)\n");
 
     scanf("%d", &use_case);
     getchar();

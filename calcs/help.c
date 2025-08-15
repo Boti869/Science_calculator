@@ -130,7 +130,7 @@ double evaluate_postfix(Token output[], int out_count) {
     return stack[0];
 }
 
-double pretty_print(double num, wchar_t unit, char mode) {
+double pretty_print(double num, wchar_t unit) {
     int mult = 0;
     int sign = (num < 0) ? -1 : 1;
     num = (num < 0) ? -num : num;
