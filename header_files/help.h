@@ -14,8 +14,17 @@ typedef struct {
     char op;      // if type == 'o'
 } Token;
 
+typedef struct {
+    double voltage;
+    double resistance;
+    double current;
+    double power;
+} Type;
+
+
 int precedence(char op);
 int is_right_assoc(char op);
 void shunting_yard(const char *input, Token output[], int *out_count);
 double evaluate_postfix(Token output[], int out_count);
 double pretty_print(double num, wchar_t unit);
+Type value_of(char buffer[]);

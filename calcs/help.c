@@ -153,3 +153,39 @@ double pretty_print(double num, wchar_t unit) {
     }   
     return num;
 }
+
+Type value_of(char buffer[]) {
+    Type rr = {0};
+    const char *tokens[4] = { "voltage", "resistance", "current", "power" };
+
+    for (int i = 0; i < 4; i++) {
+        char *token;
+        if (i == 0) {
+            token = strtok(buffer, " ");
+        } else {
+            token = strtok(NULL, " ");
+        }
+
+        if (!token) break; 
+
+        if (strcmp(token, "pi") == 0) {
+            switch (i) {
+                case 0: rr.voltage = PI; break;
+                case 1: rr.resistance = PI; break;
+                case 2: rr.current = PI; break;
+                case 3: rr.power = PI; break;
+            }
+        } else {
+            double value = atof(token);
+            switch (i) {
+                case 0: rr.voltage = value; break;
+                case 1: rr.resistance = value; break;
+                case 2: rr.current = value; break;
+                case 3: rr.power = value; break;
+            }
+        }
+    }
+
+    return rr;
+}
+
