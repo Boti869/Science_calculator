@@ -189,3 +189,43 @@ Type value_of(char buffer[]) {
     return rr;
 }
 
+RLseriesType RLsCalc(char buffer[]){
+    RLseriesType rr = {0};
+    const char *tokens[8] = { "V", "R", "L", "Xl", "Z", "I", "P", "phi" };
+
+    for (int i = 0; i < 8; i++) {
+        char *token;
+        if (i == 0) {
+            token = strtok(buffer, " ");
+        } else {
+            token = strtok(NULL, " ");
+        }
+        if (!token) break;
+
+        if (strcmp(token, "pi") == 0) {
+            switch (i) {
+                case 0: rr.V = PI; break;
+                case 1: rr.R = PI; break;
+                case 2: rr.L = PI; break;
+                case 3: rr.Xl = PI; break;
+                case 4: rr.Z = PI; break;
+                case 5: rr.I = PI; break;
+                case 6: rr.P = PI; break;
+                case 7: rr.phi = PI; break;
+            }
+        } else {
+            double value = atof(token);
+            switch (i) {
+                case 0: rr.V = value; break;
+                case 1: rr.R = value; break;
+                case 2: rr.L = value; break;
+                case 3: rr.Xl = value; break;
+                case 4: rr.Z = value; break;
+                case 5: rr.I = value; break;
+                case 6: rr.P = value; break;
+                case 7: rr.phi = value; break;
+            }
+        }
+    }
+    return rr;
+};
