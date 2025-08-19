@@ -7,7 +7,7 @@
 #include<math.h>
 #include<string.h>
 
-double initOhmLaws() {
+int initOhmLaws() {
     char buffer[100];
     
     wprintf(L"0 0 0 0 to exit\n");
@@ -26,10 +26,10 @@ double initOhmLaws() {
     }
 
     int nozero = 0;
-    if (voltage != 0) nozero++;
-    if (resistance != 0) nozero++;
-    if (current != 0) nozero++;
-    if (power != 0) nozero++;
+    if (voltage != 0.00) nozero++;
+    if (resistance != 0.00) nozero++;
+    if (current != 0.00) nozero++;
+    if (power != 0.00) nozero++;
     
     if(nozero < 2 ){
         wprintf(L"Not enough data provided.\n");
