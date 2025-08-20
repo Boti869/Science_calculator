@@ -112,14 +112,8 @@ Inputs RLsCalc(char buffer[]) {
     Token output[MAX_TOKENS];
     int out_count;
 
-    for (int i = 0; i < 11; i++) {
-        char *token;
-        if (i == 0) {
-            token = strtok(buffer, " ");
-        } else {
-            token = strtok(NULL, " ");
-        }
-
+     for (int i = 0; i < 11; i++) {
+        char *token = (i == 0) ? strtok(buffer, " ") : strtok(NULL, " ");
         if (!token) break;
 
         double value;

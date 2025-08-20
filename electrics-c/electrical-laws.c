@@ -42,115 +42,167 @@ void applyOhmLaw(double voltage, double resistance, double current, double power
 }
 
 int solve_rl(const Inputs *in, Outputs *out) {
-    //unkowns set to NAN
-    int known_mask = 0;
-    out->V   = COPY(V);
-    out->I   = COPY(I);
-    out->R   = COPY(R);
-    out->L   = COPY(L);
-    out->f   = COPY(f);
-    out->phi = COPY(phi);
-    out->P   = COPY(P);
-    out->Q   = COPY(Q);
-    out->S   = COPY(S);
-    out->Xl  = COPY(Xl);
-    out->Z   = COPY(Z);
+    out->V   = in->V;//
+    out->I   = in->I;//
+    out->R   = in->R;//
+    out->L   = in->L;//
+    out->f   = in->f;
+    out->phi = in->phi;//
+    out->P   = in->P;//
+    out->Xl  = in->Xl;//
+    out->Z   = in->Z;//
+    out->Q   = in->Q;//
+    out->S   = in->S;//
 
     bool progress = true;
     int iter = 0;
-    while (progress && iter++ < 40) {
+    while (progress && iter++ < 50) {
         progress = false;
 
-        //omega if f known
-        double w = (!isnan(out->f) ? OMEGA(out->f) : NAN);
-
+    //omega if f known
+        double w = (out->f != 0 ? OMEGA(out->f) : NAN);
+    
+    //XL
         // Xl from L and f
-        if (isnan(out->Xl) && !isnan(out->L) && !isnan(w)) {
+        if (out->Xl == 0 && out->L != 0 && w != 0) {
             out->Xl = w * out->L; progress = true;
         }
-        // L from Xl and f (requires f)
-        if (isnan(out->L) && !isnan(out->Xl) && !isnan(out->f)) {
-            out->L = out->Xl / OMEGA(out->f); progress = true;
+        // xl from R and Z
+        if (out->Xl == 0 && out->R != 0 && out->Z != 0) {
+            out->Xl = sqrt(pow(out->Z, 2) - pow(out->R, 2)); progress = true;
+        }
+        // xl from Z and phi
+        if (out->Xl == 0 && out->Z != 0 && out->phi != 0) {
+            out->Xl = out->Z * cos(out->phi); progress = true;
+        }
+        // xl from R and phi
+        if (out->Xl == 0 && out->R != 0 && out->phi != 0) {
+            out->Xl = out->R * tan(DEG_TO_RAD(out->phi)); progress = true;
         }
 
-        // Z from V and I
-        if (isnan(out->Z) && !isnan(out->V) && !isnan(out->I) && out->I != 0) {
-            out->Z = out->V / out->I; progress = true;
+    //I
+        // I from V and Z
+        if (out->I == 0 && out->V != 0 && out->Z != 0) {
+            out->I = out->V / out->Z; progress = true;
         }
-        // try to compute Z from R and Xl
-        if (isnan(out->Z) && !isnan(out->R) && !isnan(out->Xl)) {
-            out->Z = sqrt(out->R * out->R + out->Xl * out->Xl); progress = true;
-        }
-        // compute R or Xl from Z and the other
-        if (!isnan(out->Z) && !isnan(out->R) && isnan(out->Xl)) {
-            double sq = out->Z*out->Z - out->R*out->R;
-            if (sq < -1e-9) return -1; // inconsistent
-            out->Xl = (sq <= 0.0) ? 0.0 : sqrt(sq); progress = true;
-        }
-        if (!isnan(out->Z) && !isnan(out->Xl) && isnan(out->R)) {
-            double sq = out->Z*out->Z - out->Xl*out->Xl;
-            if (sq < -1e-9) return -1;
-            out->R = (sq <= 0.0) ? 0.0 : sqrt(sq); progress = true;
-        }
-
-        // phi from R & Xl
-        if (isnan(out->phi) && !isnan(out->R) && !isnan(out->Xl)) {
-            out->phi = RAD_TO_DEG(atan2(out->Xl, out->R)); progress = true;
-        }
-        // R/Xl from phi & Z
-        if (!isnan(out->Z) && !isnan(out->phi)) {
-            double phir = DEG_TO_RAD(out->phi);
-            if (isnan(out->R)) { out->R = out->Z * cos(phir); progress = true; }
-            if (isnan(out->Xl)) { out->Xl = out->Z * sin(phir); progress = true; }
-        }
-
-        // P, Q, S relations if V & I known (or if S known)
-        if (!isnan(out->V) && !isnan(out->I)) {
-            if (isnan(out->S)) { out->S = out->V * out->I; progress = true; }
-            if (!isnan(out->phi)) {
-                double phir = DEG_TO_RAD(out->phi);
-                if (isnan(out->P)) { out->P = out->V * out->I * cos(phir); progress = true; }
-                if (isnan(out->Q)) { out->Q = out->V * out->I * sin(phir); progress = true; }
-            } else {
-                // if R known and Z known -> phi computable earlier
-                if (!isnan(out->R) && !isnan(out->Z) && isnan(out->phi)) {
-                    out->phi = RAD_TO_DEG(acos(out->R / out->Z)); progress = true;
-                }
-            }
-        }
-        // P,Q -> S,phi,I (if V known)
-        if (!isnan(out->P) && !isnan(out->Q) && isnan(out->S)) {
-            out->S = hypot(out->P, out->Q); progress = true;
-        }
-        if (!isnan(out->S) && !isnan(out->V) && isnan(out->I) && out->V != 0) {
+        // I from S and V
+        if (out->I == 0 && out->S != 0 && out->V != 0) {
             out->I = out->S / out->V; progress = true;
         }
-        if (!isnan(out->P) && !isnan(out->Q) && isnan(out->phi)) {
-            out->phi = RAD_TO_DEG(atan2(out->Q, out->P)); progress = true;
-        }
-        // from S & phi -> P,Q
-        if (!isnan(out->S) && !isnan(out->phi)) {
-            double phir = DEG_TO_RAD(out->phi);
-            if (isnan(out->P)) { out->P = out->S * cos(phir); progress = true; }
-            if (isnan(out->Q)) { out->Q = out->S * sin(phir); progress = true; }
-        }
 
-        // If we have Xl but not L and we have f -> L
-        if (isnan(out->L) && !isnan(out->Xl) && !isnan(out->f)) {
-            out->L = out->Xl / OMEGA(out->f); progress = true;
-        }
-
-        // sanity: compute Z if not yet but V & I present
-        if (isnan(out->Z) && !isnan(out->V) && !isnan(out->I) && out->I != 0) {
+    //Z
+        // Z from V and I
+        if (out->Z == 0 && out->V != 0 && out->I != 0) {
             out->Z = out->V / out->I; progress = true;
         }
-    } 
+        // Z from R and Xl
+        if (out->Z == 0 && out->R != 0 && out->Xl != 0) {
+            out->Z = sqrt(pow(out->R, 2) + pow(out->Xl, 2)); progress = true;
+        }
+    //L
+        // L from Xl and f (requires f)
+        if (out->L == 0 && out->Xl != 0 && out->f != 0) {
+            out->L = out->Xl / OMEGA(out->f); progress = true;
+        }
+    
+    //R
+        // R from Z and xl
+        if (out->R == 0 && out->Z != 0 && out->Xl != 0) {
+            out->R = sqrt(pow(out->Z, 2) - pow(out->Xl, 2)); progress = true;
+        }
+        // R from Z and phi
+        if (out->R == 0 && out->Z != 0 && out->phi != 0) {
+            out->R = out->Z * cos(DEG_TO_RAD(out->phi)); progress = true;
+        }
+        // R from Xl and phi
+        if (out->R == 0 && out->Xl != 0 && out->phi != 0) {
+            out->R = out->Xl / tan(DEG_TO_RAD(out->phi)); progress = true;
+        }
+    
+    //PHI    
+        // phi from R & Xl
+        if (out->phi == 0 && out->R != 0 && out->Xl != 0) {
+            if (out->Xl != 0) {
+                out->phi = RAD_TO_DEG(atan2(out->Xl, out->R)); progress = true;
+            } else {
+                out->phi = 0; // Xl=0 means no phase shift
+            }
+        }
+        //phi from Z & R
+        if (out->phi == 0 && !isnan(out->Z) && !isnan(out->R)) {
+            if (out->Z != 0) {
+                out->phi = RAD_TO_DEG(acos(out->R / out->Z)); progress = true;
+            } else {
+                out->phi = 0; // Z=0 means no phase shift
+            }
+        }
+        // phi from Z & Xl
+        if (out->phi == 0 && out->Xl != 0 && out->Z != 0) {
+            if (out->Z != 0) {
+                out->phi = RAD_TO_DEG(asin(out->Xl / out->Z)); progress = true;
+            } else {
+                out->phi = 0; // Z=0 means no phase shift
+            }
+        }
 
-    // If L is requested but f not known, leave L as NAN (can't compute)
-    if (!isnan(out->L) && isnan(out->f)) {
-        // keep L if given, else it would be NAN
-    }
+    //V
+        // V from I and Z
+        if (out->V == 0 && out->I != 0 && out->Z != 0) {
+            out->V = out->I * out->Z; progress = true;
+        }
+        // V from S and I
+        if (out->V == 0 && out->S != 0 && out->I != 0) {
+            out->V = out->S / out->I; progress = true;
+        }
+        // V from P and I (if phi known)
+        if (out->V == 0 && out->P != 0 && out->I != 0) {
+            out->V = out->P / out->I / cos(DEG_TO_RAD(out->phi)); progress = true;
+        }
+        // V from Q and I (if phi known)
+        if (out->V == 0 && out->Q != 0 && out->I != 0) {
+            out->V = out->Q / out->I / sin(DEG_TO_RAD(out->phi)); progress = true;
+        }
+
+    //S
+        // S from V and I
+        if (out->S == 0 && out->V != 0 && out->I != 0) {
+            out->S = out->V * out->I; progress = true;
+        }
+        // S from P and Q
+        if (out->S == 0 && out->P != 0 && out->Q != 0) {
+            out->S = sqrt(pow(out->P, 2) + pow(out->Q, 2)); progress = true;
+        }
+    //Q
+        // Q from S and P
+        if (out->Q == 0 && out->S != 0 && out->P != 0) {
+            out->Q = sqrt(pow(out->S, 2) - pow(out->P, 2)); progress = true;
+        }
+        // Q from V and I (if phi known)
+        if (out->Q == 0 && out->V != 0 && out->phi != 0 && out->I != 0) {
+            out->Q = out->V * out->I * sin(DEG_TO_RAD(out->phi)); progress = true;
+        }
+    //P
+        // P from S and Q
+        if (out->P == 0 && out->S != 0 && out->Q != 0) {
+            out->P = sqrt(pow(out->S, 2) - pow(out->Q, 2)); progress = true;
+        }
+        // P from V and I (if phi known)
+        if (out->P == 0 && out->V != 0 && out->phi != 0 && out->I != 0) {
+            out->P = out->V * out->I * cos(DEG_TO_RAD(out->phi)); progress = true;
+        }
+
+    //f
+        // f from R and Xl (if phi known)
+        if (out->f == 0 && out->R != 0 && out->Xl != 0 && out->phi != 0) {
+            out->f = out->R * tan(DEG_TO_RAD(out->phi) / out->Xl); progress = true;
+        }
+}
+
+        
     pretty_print(out->V, 'V');
+    wprintf(L"\n");
+    pretty_print(out->f, 'H');
+    wprintf(L"z");
     wprintf(L"\n");
     wchar_t ohm = L'Ω';
     pretty_print(out->R, ohm);
