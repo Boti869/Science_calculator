@@ -12,7 +12,7 @@
 
 double pretty_print(double num, wchar_t unit) {
     int mult = 0;
-    int sign = (num < 0) ? -1 : 1;
+    int sign = (num < 0.0) ? -1 : 1;
     num = (num < 0) ? -num : num;
 
     while (num >= 1000.0 || num < 1.0 && num != 0.0) {
@@ -22,7 +22,6 @@ double pretty_print(double num, wchar_t unit) {
 
     num *= sign;
 
-    setlocale(LC_ALL, "");
     const wchar_t *prefixes[] = { L"f", L"p", L"n", L"µ", L"m", L"", L"k", L"M", L"G", L"T", L"P" };
     int index = mult + 5;
     if (index >= 0 && index <= 10) {

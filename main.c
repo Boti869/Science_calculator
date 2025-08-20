@@ -11,9 +11,8 @@
 #include <io.h>
 
 int main() {
-    setlocale(LC_ALL, "");
-    SetConsoleOutputCP(CP_UTF8);
-    _setmode(_fileno(stdout), _O_U8TEXT);
+    setlocale(LC_CTYPE, "");
+    setlocale(LC_NUMERIC, "C"); 
     int use_case;
     wprintf(L"Select a use case:\n"
         "1. Basic calculator\n"
