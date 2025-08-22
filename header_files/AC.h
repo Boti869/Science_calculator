@@ -6,3 +6,5 @@ int RCseries();
 int RCparallel();
 int RLCseries();
 int RLCparallel();
+int LCseries();
+int LCparallel();

@@ -141,3 +141,82 @@ Inputs RLsCalc(char buffer[]) {
 
     return rr;
 }
+
+void print_results(Outputs *out) {
+    wprintf(L"V = ");    
+    pretty_print(out->V, 'V');
+    wprintf(L"\n");
+    wprintf(L"f = ");
+    pretty_print(out->f, 'H');
+    wprintf(L"z");
+    wprintf(L"\n");
+    wprintf(L"R = ");
+    wchar_t ohm = L'Ω';
+    pretty_print(out->R, ohm);
+    wprintf(L"\n");
+    wprintf(L"L = ");
+    pretty_print(out->L, 'H');
+    wprintf(L"\n");
+    wprintf(L"Xl = ");
+    pretty_print(out->Xl, ohm);
+    wprintf(L"\n");
+    wprintf(L"Z = ");
+    pretty_print(out->Z, ohm);
+    wprintf(L"\n");
+    wprintf(L"I = ");
+    pretty_print(out->I, 'A');
+    wprintf(L"\n");
+    wprintf(L"S = ");
+    pretty_print(out->S, 'V');
+    wprintf(L"A");
+    wprintf(L"\n");
+    wprintf(L"Q = ");
+    pretty_print(out->Q, 'V');
+    wprintf(L"A");
+    wprintf(L"r");
+    wprintf(L"\n");
+    wprintf(L"P = ");
+    pretty_print(out->P, 'W');
+    wprintf(L"\n");
+    wprintf(L"phi = ");
+    wchar_t rad = L'°';
+    pretty_print(out->phi, rad);
+    wprintf(L"\n");
+}
+
+Inputs RCsCalc(char buffer[]) {
+    Inputs rr = {0};
+    const char *tokens[11] = { "V", "f", "R", "C", "Xc", "Z", "I", "S", "Q", "P", "phi" };
+
+    Token output[MAX_TOKENS];
+    int out_count;
+
+     for (int i = 0; i < 11; i++) {
+        char *token = (i == 0) ? strtok(buffer, " ") : strtok(NULL, " ");
+        if (!token) break;
+
+        double value;
+        if (strcmp(token, "pi") == 0) {
+            value = PI;
+        } else {
+            shunting_yard(token, output, &out_count);
+            value = evaluate_postfix(output, out_count);
+        }
+
+        switch (i) {
+            case 0:  rr.V   = value; break;
+            case 1:  rr.f   = value; break;
+            case 2:  rr.R   = value; break;
+            case 3:  rr.C  = value; break;
+            case 4:  rr.Xc  = value; break;
+            case 5:  rr.Z   = value; break;
+            case 6:  rr.I   = value; break;
+            case 7:  rr.S   = value; break;
+            case 8:  rr.Q   = value; break;
+            case 9:  rr.P   = value; break;
+            case 10: rr.phi = value; break;
+        }
+    }
+
+    return rr;
+}
