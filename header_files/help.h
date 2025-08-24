@@ -28,5 +28,5 @@ double pretty_print(double num, wchar_t unit);
 void add_number(const char *input, int *i, Token *output, int *out_count);
 Type value_of(char buffer[]);
 Inputs RLsCalc(char buffer[]);
-void print_results(Outputs *out);
+void print_results(Outputs *out, int type);
 Inputs RCsCalc(char buffer[]);

@@ -142,7 +142,7 @@ Inputs RLsCalc(char buffer[]) {
     return rr;
 }
 
-void print_results(Outputs *out) {
+void print_results(Outputs *out, int type) {
     wprintf(L"V = ");    
     pretty_print(out->V, 'V');
     wprintf(L"\n");
@@ -154,11 +154,21 @@ void print_results(Outputs *out) {
     wchar_t ohm = L'Ω';
     pretty_print(out->R, ohm);
     wprintf(L"\n");
-    wprintf(L"L = ");
-    pretty_print(out->L, 'H');
+    
+    switch (type){ 
+        case 1:
+        wprintf(L"L = ");
+            pretty_print(out->L, 'H'); break;
+        case 2: wprintf(L"C = ");
+            pretty_print(out->C, 'F'); break;
+    }
     wprintf(L"\n");
-    wprintf(L"Xl = ");
-    pretty_print(out->Xl, ohm);
+    switch (type){ 
+        case 1: wprintf(L"Xl = ");
+            pretty_print(out->Xl, ohm); break;
+        case 2: wprintf(L"Xc = ");
+            pretty_print(out->Xc, ohm); break;
+    }
     wprintf(L"\n");
     wprintf(L"Z = ");
     pretty_print(out->Z, ohm);
@@ -180,7 +190,7 @@ void print_results(Outputs *out) {
     wprintf(L"\n");
     wprintf(L"phi = ");
     wchar_t rad = L'°';
-    pretty_print(out->phi, rad);
+    wprintf(L"%.5f%lc", out->phi, rad);
     wprintf(L"\n");
 }
 
@@ -207,7 +217,7 @@ Inputs RCsCalc(char buffer[]) {
             case 0:  rr.V   = value; break;
             case 1:  rr.f   = value; break;
             case 2:  rr.R   = value; break;
-            case 3:  rr.C  = value; break;
+            case 3:  rr.C   = value; break;
             case 4:  rr.Xc  = value; break;
             case 5:  rr.Z   = value; break;
             case 6:  rr.I   = value; break;

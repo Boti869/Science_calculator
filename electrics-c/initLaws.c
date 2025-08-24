@@ -3,6 +3,7 @@
 #include"../header_files/constants.h"
 #include"../header_files/help.h"
 #include"../header_files/AC.h"
+#include"../header_files/AC-basic.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -51,28 +52,23 @@ int initOhmLaws() {
 
 int ACseries() {
     wprintf(L"What components are in series?\n");
-    wprintf(L"1. R and L\n"
-            "2. coming soon\n"
-            "3. coming soon\n"
-            "4. coming soon\n");
+    wprintf(   L"1. R and L\n"
+                "2. R and C\n"
+                "3. coming soon\n");
+
     int choice;
     scanf("%d", &choice);
     getchar(); 
     switch (choice) {
         case 1: 
-            RLseries();
+            series_setup(1);
             break;
         case 2:
-            wprintf(L"coming soon\n");
+            series_setup(2);
             break;
         case 3:
             wprintf(L"coming soon\n");
             break;
-        case 4:
-            wprintf(L"coming soon\n");
-            break;
-        default:
-            wprintf(L"That's not even in the menu\n");
     }
 
     return 0;

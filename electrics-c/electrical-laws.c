@@ -43,33 +43,33 @@ void applyOhmLaw(double voltage, double resistance, double current, double power
 }
 
 int solve_rl(const Inputs *in, Outputs *out) {
-    out->V   = in->V;//
-    out->I   = in->I;//
-    out->R   = in->R;//
-    out->L   = in->L;//
-    out->f   = in->f;//
-    out->phi = in->phi;//
-    out->P   = in->P;//
-    out->Xl  = in->Xl;//
-    out->Z   = in->Z;//
-    out->Q   = in->Q;//
-    out->S   = in->S;//
+    out->V   = in->V;
+    out->I   = in->I;
+    out->R   = in->R;
+    out->L   = in->L;
+    out->f   = in->f;
+    out->phi = in->phi;
+    out->P   = in->P;
+    out->Xl  = in->Xl;
+    out->Z   = in->Z;
+    out->Q   = in->Q;
+    out->S   = in->S;
 
     bool progress = true;
     int iter = 0;
-    while (progress && iter++ < 50) {
+    while (progress && iter < 50) {
         progress = false;
 
-    get_AC_values(out, 1, progress);
-    
+        get_AC_values(out, 1, &progress);
+        iter++;
     }
 
-    print_results(out);
+    print_results(out, 1);
     return 0;
 }
 
 int solve_rc(const Inputs *in, Outputs *out) {
-    out->V   = in->V;//
+    out->V   = in->V;
     out->I   = in->I;
     out->R   = in->R;
     out->C   = in->C;
@@ -83,10 +83,13 @@ int solve_rc(const Inputs *in, Outputs *out) {
 
     bool progress = true;
     int iter = 0;
-    while (progress && iter++ < 50) {
+    while (progress && iter < 50) {
         progress = false;
+        wprintf(L"%d\n", iter);
+        get_AC_values(out, 2, &progress);
+        iter++;
 
     }
-    volt_AC(out, progress);
+    print_results(out, 2);
     return 0; 
 };
