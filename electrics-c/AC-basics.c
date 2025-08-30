@@ -112,7 +112,7 @@ bool R_AC(Outputs *out, int type, bool *progress) {
 }
 
 // ---------- Phase angle ----------
-bool phi_AC(Outputs *out, int type, bool *progress) {
+bool phi_AC(Outputs *out, int type, int parallel, bool *progress) {
     if (is_known(out->phi)) return *progress;
 
     if (type == 1) { // inductive
@@ -123,13 +123,29 @@ bool phi_AC(Outputs *out, int type, bool *progress) {
         else if (is_known(out->Z) && is_known(out->Xl))
             out->phi = RAD_TO_DEG(asin(out->Xl / out->Z));
         else return *progress;
-    } else { // capacitive
+    } else if(type == 2){ // capacitive
         if (is_known(out->R) && is_known(out->Xc))
             out->phi = RAD_TO_DEG(atan2(-out->Xc, out->R));
         else if (is_known(out->Z) && is_known(out->R))
             out->phi = RAD_TO_DEG(acos(out->R / out->Z));
         else if (is_known(out->Z) && is_known(out->Xc))
             out->phi = RAD_TO_DEG(asin(-out->Xc / out->Z));
+        else return *progress;
+    }else if (parallel == 1){ //parallel
+        if (is_known(out->G) && is_known(out->Bl))
+            out->phi = RAD_TO_DEG(atan2(out->Bl, out->G));
+        else if (is_known(out->Z) && is_known(out->G))
+            out->phi = RAD_TO_DEG(acos(out->G * out->Z));
+        else if (is_known(out->Z) && is_known(out->Bl))
+            out->phi = RAD_TO_DEG(asin(out->Bl * out->Z));
+        else return *progress;
+    }else if(parallel == 2){ //prallel RC
+        if (is_known(out->R) && is_known(out->C))
+            out->phi = RAD_TO_DEG(atan2(out->C, out->R));
+        else if (is_known(out->Z) && is_known(out->R))
+            out->phi = RAD_TO_DEG(acos(out->R / out->Z));
+        else if (is_known(out->Z) && is_known(out->C))
+            out->phi = RAD_TO_DEG(asin(out->C / out->Z));
         else return *progress;
     }
     *progress = true;
@@ -180,84 +196,94 @@ bool f_ac(Outputs *out, bool *progress) {
     return *progress;
 }
 
+// ---------- Susceptance (for parallel circuits) ----------
+bool Bl_C_AC(Outputs *out, int type, bool *progress) {
+    if(is_known(out->R)) out->G = 1.0 / out->R; return *progress;
+    if (type == 1 && !is_known(out->Bl) && is_known(out->Xl) && is_known(out->f)) {
+        out->Bl = 1.0 / out->Xl;
+        *progress = true;
+    } else if (type == 2 && !is_known(out->Bc) && is_known(out->Xc) && is_known(out->f)) {
+        out->Bc = 1.0 / out->Xc;
+        *progress = true;
+    }
+    return *progress;
+}
 // ---------- Driver ----------
-bool get_AC_values(Outputs *out, int type, bool *progress) {
+bool get_AC_values(Outputs *out, int type, int parallel, bool *progress) {
     xl_c_AC(out, type, progress);
     I_AC(out, progress);
     imp_AC(out, type, progress);
     L_C_AC(out, type, progress);
     R_AC(out, type, progress);
-    phi_AC(out, type, progress);
+    phi_AC(out, type, parallel, progress);
     volt_AC(out, progress);
     power_AC(out, progress);
     f_ac(out, progress);
     return *progress;
 }
 
-
-int series_setup(int type) {
+int series_setup(int type, int parallel) {
     char buffer[256];
     wprintf(L"Enter a letter to exit (break the code)\n"
-            "enter 0 in place of unknown\n");
-    while(1){
-    if(type == 1)wprintf(L"Enter values for |   V   |   f   |   R   |   L   |   Xl   |   Z   |   I   |   S   |   Q   |   P   |   phi   (with spaces): \n");
-    else if(type == 2)wprintf(L"Enter values for |   V   |   f   |   R   |   C   |   Xc   |   Z   |   I   |   S   |   Q   |   P   |   phi   (with spaces): \n"); 
-    
-    fgets(buffer, sizeof(buffer), stdin);
-    Inputs result = (type == 1) ? RLsCalc(buffer) : RCsCalc(buffer);
-    
-    double L = 0, Xl = 0, C = 0, Xc = 0;
-    if(type == 1){
-        L = result.L, 
-        Xl = result.Xl;}
-    else{L = 0; Xl = 0;} 
-    if(type == 2){
-        C = result.C, 
-        Xc = result.Xc;}
-    else{C = 0; Xc = 0;}
+            "Enter 0 in place of unknown\n");
 
-    double  V = result.V, 
-            f = result.f,       
-            R = result.R, 
-            Z = result.Z, 
-            I = result.I, 
-            S = result.S,
-            Q = result.Q,
-            P = result.P, 
-            phi = DEG_TO_RAD(result.phi);        
-    
-    if(V == 0 && f == 0 && R == 0 && ((type == 1 &&L == 0 && Xl == 0) || (type == 2 && C == 0 && Xc == 0)) && Z == 0 && I == 0 && P == 0 && phi == 0) {
-        wprintf(L"Exiting...\n");
-        return 0; 
-    }
+    while (1) {
+        // Pick prompt dynamically
+        if (type == 1 && parallel == 0)
+            wprintf(L"Enter values for  V | f | R | L | Xl | Z | I | S | Q | P | phi \n");
+        else if (type == 1 && parallel == 1)
+            wprintf(L"Enter values for  V | f | R | L | Xl | Bl | Z | I | S | Q | P | phi \n");
+        else if (type == 2 && parallel == 0)
+            wprintf(L"Enter values for  V | f | R | C | Xc | Z | I | S | Q | P | phi \n");
+        else
+            wprintf(L"Enter values for  V | f | R | C | Xc | Bc | Z | I | S | Q | P | phi \n");
 
-    int nozero = 0;
-    if (V != 0) nozero++; 
-    if (f != 0) nozero++;
-    if (R != 0) nozero++; 
-    if (L != 0 && type == 1) nozero++; 
-    if (Xl != 0 && type == 1) nozero++;
-    if (C != 0 && type == 2) nozero++;
-    if (Xc != 0 && type == 2) nozero++; 
-    if (Z != 0) nozero++; 
-    if (I != 0) nozero++; 
-    if (S != 0) nozero++; 
-    if (phi != 0) nozero++; 
-    
-    if (nozero < 3) {
-        wprintf(L"Not enough data provided.\n");
-        fflush(stdin);
-        continue; 
+        if (!fgets(buffer, sizeof(buffer), stdin))
+            return 0;
+
+        Inputs result = {0};
+        if (parallel == 0)
+            result = (type == 1) ? RLsCalc(buffer) : RCsCalc(buffer);
+        else
+            result = (type == 1) ? RLpCalc(buffer) : RCpCalc(buffer);
+
+        if (result.V == 0 && result.f == 0 && result.R == 0 && 
+            result.L == 0 && result.Xl == 0 && result.C == 0 && result.Xc == 0 && 
+            result.Z == 0 && result.I == 0 && result.P == 0 && result.phi == 0) {
+            wprintf(L"Exiting...\n");
+            return 0;
         }
-        
-    if(R < 0 || L < 0 || Xl < 0 || Z < 0 || S < 0 || phi < 0 || f < 0 || C < 0 || Xc < 0 || P < 0 || Q < 0) {
-        wprintf(L"Only V and I can be negative\n");
-        fflush(stdin);
-        continue; 
+
+        int nozero = 0;
+        if (result.V) nozero++;
+        if (result.f) nozero++;
+        if (result.R) nozero++;
+        if (type == 1 && (result.L || result.Xl)) nozero++;
+        if (type == 2 && (result.C || result.Xc)) nozero++;
+        if (result.Z) nozero++;
+        if (result.I) nozero++;
+        if (result.S) nozero++;
+        if (result.phi) nozero++;
+
+        if (nozero < 3) {
+            wprintf(L"Not enough data provided.\n");
+            continue;
         }
-    
-    switch(type){case 1:solve_rl(&result, (Outputs *)&result); break;
-                case 2:solve_rc(&result, (Outputs *)&result); break;}
+
+        if ((result.R < 0) || (result.L < 0) || (result.Xl < 0) || (result.Z < 0) ||
+            (result.S < 0) || (result.phi < 0) || (result.f < 0) ||
+            (result.C < 0) || (result.Xc < 0) || (result.P < 0) || (result.Q < 0)) {
+            wprintf(L"Only V and I can be negative.\n");
+            continue;
+        }
+
+        // Solve
+        if (parallel == 0) {
+            if (type == 1) solve_circuit(&result, (Outputs *)&result, SERIES_RL);
+            else            solve_circuit(&result, (Outputs *)&result, SERIES_RC);
+        } else {
+            if (type == 1) solve_circuit(&result, (Outputs *)&result, PARALLEL_RL);
+            else            solve_circuit(&result, (Outputs *)&result, PARALLEL_RC);
+        }
     }
-    return 0;
 }

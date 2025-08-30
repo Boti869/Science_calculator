@@ -61,10 +61,34 @@ int ACseries() {
     getchar(); 
     switch (choice) {
         case 1: 
-            series_setup(1);
+            series_setup(1, 0);
             break;
         case 2:
-            series_setup(2);
+            series_setup(2, 0);
+            break;
+        case 3:
+            wprintf(L"coming soon\n");
+            break;
+    }
+
+    return 0;
+}
+
+int ACparallel() {
+    wprintf(L"What components are in parallel?\n");
+    wprintf(   L"1. R and L\n"
+                "2. R and C\n"
+                "3. coming soon\n");
+
+    int choice;
+    scanf("%d", &choice);
+    getchar(); 
+    switch (choice) {
+        case 1: 
+            series_setup(1, 1);
+            break;
+        case 2:
+            series_setup(2, 1);
             break;
         case 3:
             wprintf(L"coming soon\n");

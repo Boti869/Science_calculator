@@ -2,3 +2,4 @@
 
 int initOhmLaws();
 int ACseries();
+int ACparallel();

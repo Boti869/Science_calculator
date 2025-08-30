@@ -42,54 +42,57 @@ void applyOhmLaw(double voltage, double resistance, double current, double power
     wprintf(L"\n");
 }
 
-int solve_rl(const Inputs *in, Outputs *out) {
+int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
+    // all have these
     out->V   = in->V;
     out->I   = in->I;
     out->R   = in->R;
-    out->L   = in->L;
     out->f   = in->f;
     out->phi = in->phi;
     out->P   = in->P;
-    out->Xl  = in->Xl;
     out->Z   = in->Z;
     out->Q   = in->Q;
     out->S   = in->S;
 
+    switch (type) {
+        case SERIES_RL:
+        case PARALLEL_RL:
+            out->L  = in->L;
+            out->Xl = in->Xl;
+            if (type == PARALLEL_RL) out->Bl = in->Bl;
+            break;
+
+        case SERIES_RC:
+        case PARALLEL_RC:
+            out->C  = in->C;
+            out->Xc = in->Xc;
+            if (type == PARALLEL_RC) out->Bc = in->Bc;
+            break;
+    }
+
+    // Iterative solving
     bool progress = true;
     int iter = 0;
     while (progress && iter < 50) {
         progress = false;
 
-        get_AC_values(out, 1, &progress);
+        switch (type) {
+            case SERIES_RL:     get_AC_values(out, 1, 0, &progress); break;
+            case SERIES_RC:     get_AC_values(out, 2, 0, &progress); break;
+            case PARALLEL_RL:   get_AC_values(out, 1, 1, &progress); break;
+            case PARALLEL_RC:   get_AC_values(out, 2, 2, &progress); break;
+        }
+
         iter++;
     }
 
-    print_results(out, 1);
+    // Print results
+    switch (type) {
+        case SERIES_RL:   print_results(out, 1, 0); break;
+        case SERIES_RC:   print_results(out, 2, 0); break;
+        case PARALLEL_RL: print_results(out, 1, 1); break;
+        case PARALLEL_RC: print_results(out, 2, 1); break;
+    }
+
     return 0;
 }
-
-int solve_rc(const Inputs *in, Outputs *out) {
-    out->V   = in->V;
-    out->I   = in->I;
-    out->R   = in->R;
-    out->C   = in->C;
-    out->f   = in->f;
-    out->phi = in->phi;
-    out->P   = in->P;
-    out->Xc  = in->Xc;
-    out->Z   = in->Z;
-    out->Q   = in->Q;
-    out->S   = in->S;
-
-    bool progress = true;
-    int iter = 0;
-    while (progress && iter < 50) {
-        progress = false;
-        wprintf(L"%d\n", iter);
-        get_AC_values(out, 2, &progress);
-        iter++;
-
-    }
-    print_results(out, 2);
-    return 0; 
-};

@@ -19,7 +19,8 @@ int main() {
         "1. Basic calculator\n"
         "2. Science calculator\n"
         "3. Basic electrical calculations (V, R, I and P)\n"
-        "4. AC series calculators\n");
+        "4. AC series calculators\n"
+        "5. AC parallel calculators\n");
     
     scanf("%d", &use_case);
     getchar();
@@ -29,6 +30,7 @@ int main() {
         case 2: sciCalc(); break;
         case 3: initOhmLaws(); break;
         case 4: ACseries(); break;
+        case 5: ACparallel(); break;
         default: wprintf(L"That wasn't on the list...\n"
                         L"Try again ");
     }
