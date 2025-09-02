@@ -2,7 +2,6 @@
 #include"../header_files/initLaws.h"
 #include"../header_files/constants.h"
 #include"../header_files/help.h"
-#include"../header_files/AC.h"
 #include"../header_files/AC-basic.h"
 #include<stdio.h>
 #include<stdlib.h>
@@ -54,7 +53,7 @@ int ACseries() {
     wprintf(L"What components are in series?\n");
     wprintf(   L"1. R and L\n"
                 "2. R and C\n"
-                "3. coming soon\n");
+                "3. R L and C\n");
 
     int choice;
     scanf("%d", &choice);
@@ -67,7 +66,7 @@ int ACseries() {
             series_setup(2, 0);
             break;
         case 3:
-            wprintf(L"coming soon\n");
+            series_setup(3, 0);
             break;
     }
 
@@ -78,7 +77,7 @@ int ACparallel() {
     wprintf(L"What components are in parallel?\n");
     wprintf(   L"1. R and L\n"
                 "2. R and C\n"
-                "3. coming soon\n");
+                "3. R L and C\n");
 
     int choice;
     scanf("%d", &choice);
@@ -91,7 +90,7 @@ int ACparallel() {
             series_setup(2, 1);
             break;
         case 3:
-            wprintf(L"coming soon\n");
+            series_setup(3, 1);
             break;
     }
 

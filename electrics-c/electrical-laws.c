@@ -59,14 +59,27 @@ int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
         case PARALLEL_RL:
             out->L  = in->L;
             out->Xl = in->Xl;
-            if (type == PARALLEL_RL) out->Bl = in->Bl;
+            if (type == PARALLEL_RL) out->Bl = in->Bl; out->G = in->G; out->Y = in->Y;
             break;
 
         case SERIES_RC:
         case PARALLEL_RC:
             out->C  = in->C;
             out->Xc = in->Xc;
-            if (type == PARALLEL_RC) out->Bc = in->Bc;
+            if (type == PARALLEL_RC) out->Bc = in->Bc; out->G = in->G; out->Y = in->Y;
+            break;
+        case SERIES_RLC:
+        case PARALLEL_RLC:
+            out->L  = in->L;
+            out->C  = in->C;
+            out->Xl = in->Xl;
+            out->Xc = in->Xc;
+            if (type == PARALLEL_RLC) {
+                out->Bl = in->Bl;
+                out->Bc = in->Bc;
+                out->G  = in->G;
+                out->Y  = in->Y;
+            }
             break;
     }
 
@@ -79,8 +92,11 @@ int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
         switch (type) {
             case SERIES_RL:     get_AC_values(out, 1, 0, &progress); break;
             case SERIES_RC:     get_AC_values(out, 2, 0, &progress); break;
+            case SERIES_RLC:    get_AC_values(out, 3, 0, &progress); break;
             case PARALLEL_RL:   get_AC_values(out, 1, 1, &progress); break;
             case PARALLEL_RC:   get_AC_values(out, 2, 2, &progress); break;
+            case PARALLEL_RLC:  get_AC_values(out, 3, 3, &progress); break;
+
         }
 
         iter++;
@@ -90,8 +106,10 @@ int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
     switch (type) {
         case SERIES_RL:   print_results(out, 1, 0); break;
         case SERIES_RC:   print_results(out, 2, 0); break;
+        case SERIES_RLC:  print_results(out, 3, 0); break;
         case PARALLEL_RL: print_results(out, 1, 1); break;
         case PARALLEL_RC: print_results(out, 2, 1); break;
+        case PARALLEL_RLC:print_results(out, 3, 1); break;
     }
 
     return 0;

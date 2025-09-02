@@ -15,15 +15,17 @@ typedef struct {
 } Type;
 
 typedef struct{
-    double V, f, R, L, Xl, Z, I, S, Q, P, phi, C, Xc, Bl, Bc, G;
+    double V, f, R, L, Xl, Z, I, S, Q, P, phi, C, Xc, Bl, Bc, G, Y;
 }Inputs;
 
 typedef Inputs Outputs;
 typedef enum {
     SERIES_RL,
     SERIES_RC,
+    SERIES_RLC,
     PARALLEL_RL,
-    PARALLEL_RC
+    PARALLEL_RC,
+    PARALLEL_RLC
 } CircuitType;
 
 int precedence(char op);
@@ -39,3 +41,5 @@ Inputs RLsCalc(char buffer[]);
 Inputs RCsCalc(char buffer[]);
 Inputs RLpCalc(char buffer[]);
 Inputs RCpCalc(char buffer[]);
+Inputs RLCsCalc(char buffer[]);
+Inputs RLCpCalc(char buffer[]);
