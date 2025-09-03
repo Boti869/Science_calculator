@@ -24,6 +24,8 @@ bool volt_AC(Outputs *out, bool *progress) {
             out->V = out->P / (out->I * cos(DEG_TO_RAD(out->phi)));
         else if (is_known(out->Q) && is_known(out->I) && is_known(out->phi))
             out->V = out->Q / (out->I * sin(DEG_TO_RAD(out->phi)));
+        else if(is_known(out->Y) && is_known(out->I))
+            out->V = out->I / out->Y;
         else return *progress;
         *progress = true;
     }
@@ -83,31 +85,43 @@ bool imp_AC(Outputs *out, int type, int parallel, bool *progress) {
 }
 
 // ---------- Reactance ----------
-bool xl_c_AC(Outputs *out, int type, bool *progress) {
+bool xl_c_AC(Outputs *out, int type, int parallel, bool *progress) {
+    // Inductive reactance (Xl)
     if ((type == 1 || type == 3) && !is_known(out->Xl)) {
         if (is_known(out->L) && is_known(out->f))
             out->Xl = OMEGA(out->f) * out->L;
         else if (is_known(out->R) && is_known(out->Z))
-            out->Xl = sqrt(out->Z*out->Z - out->R*out->R);
+            out->Xl = sqrt(out->Z * out->Z - out->R * out->R);
         else if (is_known(out->Z) && is_known(out->phi))
             out->Xl = out->Z * sin(DEG_TO_RAD(out->phi));
         else if (is_known(out->R) && is_known(out->phi))
             out->Xl = out->R * tan(DEG_TO_RAD(out->phi));
-        else return *progress;
+        else if (parallel == 1 && is_known(out->Bl))
+            out->Xl = 1.0 / out->Bl;
+        else
+            return *progress;
+
         *progress = true;
     }
+
+    // Capacitive reactance (Xc)
     if ((type == 2 || type == 3) && !is_known(out->Xc)) {
         if (is_known(out->C) && is_known(out->f))
             out->Xc = 1.0 / (OMEGA(out->f) * out->C);
         else if (is_known(out->R) && is_known(out->Z))
-            out->Xc = sqrt(out->Z*out->Z - out->R*out->R);
+            out->Xc = sqrt(out->Z * out->Z - out->R * out->R);
         else if (is_known(out->Z) && is_known(out->phi))
             out->Xc = -out->Z * sin(DEG_TO_RAD(out->phi));
         else if (is_known(out->R) && is_known(out->phi))
             out->Xc = -out->R * tan(DEG_TO_RAD(out->phi));
-        else return *progress;
+        else if (parallel == 1 && is_known(out->Bc))
+            out->Xc = 1.0 / out->Bc;
+        else
+            return *progress;
+
         *progress = true;
     }
+
     return *progress;
 }
 
@@ -131,6 +145,7 @@ bool R_AC(Outputs *out, int type, bool *progress) {
             else{ double X = out->Xc - out->Xl;
             out->R = X / tan(DEG_TO_RAD(out->phi));}
         }
+        else if(is_known(out->G)) out->R = 1.0 / out->G;
         else return *progress;
         *progress = true;
     }
@@ -141,7 +156,8 @@ bool R_AC(Outputs *out, int type, bool *progress) {
 bool phi_AC(Outputs *out, int type, int parallel, bool *progress) {
     if (is_known(out->phi)) return *progress;
 
-    if (type == 1) { // inductive
+    // Series inductive
+    if (type == 1) {
         if (is_known(out->R) && is_known(out->Xl))
             out->phi = RAD_TO_DEG(atan2(out->Xl, out->R));
         else if (is_known(out->Z) && is_known(out->R))
@@ -149,8 +165,10 @@ bool phi_AC(Outputs *out, int type, int parallel, bool *progress) {
         else if (is_known(out->Z) && is_known(out->Xl))
             out->phi = RAD_TO_DEG(asin(out->Xl / out->Z));
         else return *progress;
+    }
 
-    } else if(type == 2){ // capacitive
+    // Series capacitive
+    else if (type == 2) {
         if (is_known(out->R) && is_known(out->Xc))
             out->phi = RAD_TO_DEG(atan2(-out->Xc, out->R));
         else if (is_known(out->Z) && is_known(out->R))
@@ -158,34 +176,35 @@ bool phi_AC(Outputs *out, int type, int parallel, bool *progress) {
         else if (is_known(out->Z) && is_known(out->Xc))
             out->phi = RAD_TO_DEG(asin(-out->Xc / out->Z));
         else return *progress;
+    }
 
-    }else if(type == 3){ //RLC
+    // Series RLC
+    else if (type == 3) {
         double X = out->Xl - out->Xc;
         if (is_known(out->R) && is_known(out->Xl) && is_known(out->Xc))
-            if(out->Xl > out->Xc) out->phi = RAD_TO_DEG(atan2(X, out->R));
-            else out->phi = RAD_TO_DEG(atan2(out->Xc - out->Xl, out->R));
-
-        else if (is_known(out->Z) && is_known(out->R) && is_known(out->Xl) && is_known(out->Xc)){
             out->phi = RAD_TO_DEG(atan2(X, out->R));
-        }
+        else if (is_known(out->Z) && is_known(out->R) && is_known(out->Xl) && is_known(out->Xc))
+            out->phi = RAD_TO_DEG(atan2(X, out->R));
         else if (is_known(out->Z) && is_known(out->R))
             out->phi = RAD_TO_DEG(acos(out->R / out->Z));
-        else if (is_known(out->Z) && is_known(out->Xl) && is_known(out->Xc)){
+        else if (is_known(out->Z) && is_known(out->Xl) && is_known(out->Xc))
             out->phi = RAD_TO_DEG(asin(X / out->Z));
-        }
         else return *progress;
+    }
 
-    
-    }else if (parallel == 1){ //parallel
+    // Parallel RL
+    else if (parallel == 1) {
         if (is_known(out->G) && is_known(out->Bl))
             out->phi = RAD_TO_DEG(atan2(out->Bl, out->G));
-        else if (is_known(out->Z) && is_known(out->G))
-            out->phi = RAD_TO_DEG(acos(out->G * out->Z));
-        else if (is_known(out->Z) && is_known(out->Bl))
-            out->phi = RAD_TO_DEG(asin(out->Bl * out->Z));
+        else if (is_known(out->Y) && is_known(out->G))
+            out->phi = RAD_TO_DEG(acos(out->G * out->Y));
+        else if (is_known(out->Y) && is_known(out->Bl))
+            out->phi = RAD_TO_DEG(asin(out->Bl * out->Y));
         else return *progress;
+    }
 
-    }else if(parallel == 2){ //prallel RC
+    // Parallel RC
+    else if (parallel == 2) {
         if (is_known(out->R) && is_known(out->C))
             out->phi = RAD_TO_DEG(atan2(out->C, out->R));
         else if (is_known(out->Z) && is_known(out->R))
@@ -193,26 +212,22 @@ bool phi_AC(Outputs *out, int type, int parallel, bool *progress) {
         else if (is_known(out->Z) && is_known(out->C))
             out->phi = RAD_TO_DEG(asin(out->C / out->Z));
         else return *progress;
-    
-    }else if(parallel == 3){ //parallel RLC
+    }
+
+    // Parallel RLC
+    else if (parallel == 3) {
         double B = out->Bc - out->Bl;
         if (is_known(out->G) && is_known(out->Bl) && is_known(out->Bc))
-            if(out->Bc > out->Bl) out->phi = RAD_TO_DEG(atan2(B, out->G));
-            else out->phi = RAD_TO_DEG(atan2(out->Bl - out->Bc, out->G));
-
-        else if (is_known(out->Z) && is_known(out->G) && is_known(out->Bl) && is_known(out->Bc)){
             out->phi = RAD_TO_DEG(atan2(B, out->G));
-        }
         else if (is_known(out->Z) && is_known(out->G))
             out->phi = RAD_TO_DEG(acos(out->G * out->Z));
-        else if (is_known(out->Z) && is_known(out->Bl) && is_known(out->Bc)){
-            out->phi = RAD_TO_DEG(asin(B * out->Z));
-        }
+        else if (is_known(out->Y) && is_known(out->Bl) && is_known(out->Bc))
+            out->phi = RAD_TO_DEG(asin(B * out->Y));
         else return *progress;
     }
+
     *progress = true;
     return *progress;
-
 }
 
 // ---------- Power ----------
@@ -277,7 +292,7 @@ bool Bl_C_AC(Outputs *out, int type, bool *progress) {
 
 // ---------- Driver ----------
 bool get_AC_values(Outputs *out, int type, int parallel, bool *progress) {
-    xl_c_AC(out, type, progress);
+    xl_c_AC(out, type, parallel, progress);
     I_AC(out, progress);
     imp_AC(out, type, parallel, progress);
     L_C_AC(out, type, progress);
@@ -285,7 +300,6 @@ bool get_AC_values(Outputs *out, int type, int parallel, bool *progress) {
     phi_AC(out, type, parallel, progress);
     volt_AC(out, progress);
     power_AC(out, progress);
-    f_ac(out, progress);
     Bl_C_AC(out, type, progress);
     return *progress;
 }

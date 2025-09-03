@@ -59,14 +59,14 @@ int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
         case PARALLEL_RL:
             out->L  = in->L;
             out->Xl = in->Xl;
-            if (type == PARALLEL_RL) out->Bl = in->Bl; out->G = in->G; out->Y = in->Y;
+            if (type == PARALLEL_RL) {out->Bl = in->Bl; out->G = in->G; out->Y = in->Y;}
             break;
 
         case SERIES_RC:
         case PARALLEL_RC:
             out->C  = in->C;
             out->Xc = in->Xc;
-            if (type == PARALLEL_RC) out->Bc = in->Bc; out->G = in->G; out->Y = in->Y;
+            if (type == PARALLEL_RC) {out->Bc = in->Bc; out->G = in->G; out->Y = in->Y;}
             break;
         case SERIES_RLC:
         case PARALLEL_RLC:

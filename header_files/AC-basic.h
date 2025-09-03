@@ -4,7 +4,7 @@
 
 bool volt_AC(Outputs *out , bool *progress);
 bool power_AC(Outputs *out, bool *progress);
-bool xl_c_AC(Outputs *out, int type, bool *progress);
+bool xl_c_AC(Outputs *out, int type, int parallel, bool *progress);
 bool imp_AC(Outputs *out, int type, int parallel, bool *progress);
 bool phi_AC(Outputs *out, int type, int parallel, bool *progress);
 bool I_AC(Outputs *out, bool *progress);

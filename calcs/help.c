@@ -15,7 +15,7 @@ double pretty_print(double num, wchar_t unit) {
     int sign = (num < 0.0) ? -1 : 1;
     num = (num < 0) ? -num : num;
 
-    while (num >= 1000.0 || num < 1.0 && num != 0.0) {
+    while (num >= 1000.0 || (num < 1.0 && num != 0.0)) {
         if (num >= 1000.0) { num /= 1000.0; mult++; }
         else if (num < 1.0) { num *= 1000.0; mult--; }
     }
@@ -69,7 +69,6 @@ void print_results(Outputs *out, int type, int parallel) {
 
 void add_number(const char *input, int *i, Token *output, int *out_count) {
     char buffer[64];  
-    int j = 0;
 
     while (isdigit(input[*i]) || input[*i] == '.' || input[*i] == 'e' || input[*i] == 'E') {
     buffer[(*i)++] = input[(*i)++];
@@ -83,7 +82,7 @@ void add_number(const char *input, int *i, Token *output, int *out_count) {
 
 Type value_of(char buffer[]) {
     Type rr = {0};
-    const char *tokens[4] = { "voltage", "resistance", "current", "power" };
+    const char *tokens[4] = { "V", "R", "I", "P" };
     Token output[MAX_TOKENS];
     int out_count;
 
