@@ -28,12 +28,8 @@ typedef enum {
     PARALLEL_RLC
 } CircuitType;
 
-int precedence(char op);
-int is_right_assoc(char op);
-void shunting_yard(const char *input, Token output[], int *out_count);
-double evaluate_postfix(Token output[], int out_count);
 double pretty_print(double num, wchar_t unit);
-void add_number(const char *input, int *i, Token *output, int *out_count);
+int up_low(const char *s1, const char *s2);
 Type value_of(char buffer[]);
 void print_results(Outputs *out, int type, int parallel);
 Inputs parseInputs(char buffer[], const char *tokens[], int count, int type, int parallel);

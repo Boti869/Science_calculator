@@ -207,3 +207,16 @@ double evaluate_postfix(Token output[], int out_count) {
     if (top != 0) { fprintf(stderr, "Error: invalid expression\n"); exit(1); }
     return stack[0];
 }
+
+void add_number(const char *input, int *i, Token *output, int *out_count) {
+    char buffer[64];  
+
+    while (isdigit(input[*i]) || input[*i] == '.' || input[*i] == 'e' || input[*i] == 'E') {
+    buffer[(*i)++] = input[(*i)++];
+}
+    buffer[(*i)] = '\0';
+    output[(*out_count)].type = 'n';
+    output[(*out_count)].value = atof(buffer);   
+    (*out_count)++;
+
+}

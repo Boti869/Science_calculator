@@ -67,17 +67,15 @@ void print_results(Outputs *out, int type, int parallel) {
     wprintf(L"%lc = ", phi); wprintf(L"%.5f%lc", out->phi, rad);   wprintf(L"\n");
 }
 
-void add_number(const char *input, int *i, Token *output, int *out_count) {
-    char buffer[64];  
-
-    while (isdigit(input[*i]) || input[*i] == '.' || input[*i] == 'e' || input[*i] == 'E') {
-    buffer[(*i)++] = input[(*i)++];
-}
-    buffer[(*i)] = '\0';
-    output[(*out_count)].type = 'n';
-    output[(*out_count)].value = atof(buffer);   
-    (*out_count)++;
-
+int up_low(const char *s1, const char *s2) {
+    while (*s1 && *s2) {
+        char c1 = tolower((unsigned char)*s1);
+        char c2 = tolower((unsigned char)*s2);
+        if (c1 != c2) return c1 - c2;
+        s1++;
+        s2++;
+    }
+    return (unsigned char)*s1 - (unsigned char)*s2;
 }
 
 Type value_of(char buffer[]) {
@@ -97,36 +95,9 @@ Type value_of(char buffer[]) {
         if (!token) break;
 
         double value;
-        if (strcmp(token, "pi") == 0) {
-            value = PI; 
-        } else {
-            char cleaned[64];
-            int k = 0;
-            int j = 0;
-             while (token[j] != '\0') {
-                if (token[j] == '*' && token[j+1] == '1' && token[j+2] == '0') {
-                    cleaned[k++] = 'e';
-                    j += 3;
-
-                    while (token[j] == ' ') j++;
-                    if (token[j] == '^') j++; 
-                    while (token[j] == ' ') j++;
-
-                    if (token[j] == '+' || token[j] == '-') {
-                        cleaned[k++] = token[j++];
-                    }
-
-                    while (isdigit(token[j])) {
-                        cleaned[k++] = token[j++];
-                    }
-                } else {
-                    cleaned[k++] = token[j++];
-                }
-            }
-            cleaned[k] = '\0';
-            shunting_yard(cleaned, output, &out_count); 
+            shunting_yard(token, output, &out_count); 
             value = evaluate_postfix(output, out_count);  
-        }
+        
 
         switch (i) {
             case 0: rr.voltage    = value; break;
@@ -145,131 +116,78 @@ Inputs parseInputs(char buffer[], const char *tokens[], int count, int type, int
     int out_count;
 
     for (int i = 0; i < count; i++) {
-        char *token = (i == 0) ? strtok(buffer, " ") : strtok(NULL, " ");
+        char *token = (i == 0) ? strtok(buffer, ",") : strtok(NULL, ",");
         if (!token) break;
-
         double value;
-        if (strcmp(token, "pi") == 0) {
-            value = PI;
-        } else {
-            shunting_yard(token, output, &out_count);
-            value = evaluate_postfix(output, out_count);
-        }
+        while (isspace((unsigned char)*token)) token++;
 
-        if (type == 1 && parallel == 0) {
+        char *equal = strchr(token, '=');
+        if (!equal) continue;
+        
+        *equal = '\0';
+        char *var = token;
+        char *expr = equal + 1;
+
+        while (isspace(*var)) var++;
+        char *end = var + strlen(var) - 1;
+        while (isspace(*expr)) expr++;
+        while (end > var && isspace((unsigned char)*end)) {
+            *end = '\0';
+            end--;
+        }
+        while(isspace((unsigned char)*expr)) expr++;
+        if(up_low(expr, "pi") == 0) {
+            value = PI;
+        } else if (up_low(expr, "C") == 0) {
+            value = LIGHT;
+        } else {
+        shunting_yard(expr, output, &out_count);
+        value = evaluate_postfix(output, out_count);
+
+        if(up_low(var, "V") == 0) rr.V = value;
+        else if(up_low(var, "f") == 0) rr.f = value;
+        else if(up_low(var, "R") == 0) rr.R = value;
+        else if(up_low(var, "L") == 0 && (type == 1 || type == 3)) rr.L = value;
+        else if(up_low(var, "Xl") == 0 && (type == 1 || type == 3)) rr.Xl = value;
+        else if(up_low(var, "C") == 0 && (type == 2 || type == 3)) rr.C = value;
+        else if(up_low(var, "Xc") == 0 && (type == 2 || type == 3)) rr.Xc = value;
+        else if(up_low(var, "Z") == 0) rr.Z = value;
+        else if(up_low(var, "I") == 0) rr.I = value;
+        else if(up_low(var, "S") == 0) rr.S = value;
+        else if(up_low(var, "Q") == 0) rr.Q = value;
+        else if(up_low(var, "P") == 0) rr.P = value;
+        else if(up_low(var, "phi") == 0) rr.phi = value;
+        else if(up_low(var, "Bl") == 0 && parallel == 1 && (type == 1 || type == 3)) rr.Bl = value;
+        else if(up_low(var, "Bc") == 0 && parallel == 1 && (type == 2 || type == 3)) rr.Bc = value;
+        else if(up_low(var, "G") == 0 && parallel == 1) rr.G = value;
+        else if(up_low(var, "Y") == 0 && parallel == 1) rr.Y = value;
+        
+    }
+        /*(type == 1 && parallel == 0) {
             // ----- Series RL -----
             // V | f | R | L | Xl | Z | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.L   = value; break;
-                case 4:  rr.Xl  = value; break;
-                case 5:  rr.Z   = value; break;
-                case 6:  rr.I   = value; break;
-                case 7:  rr.S   = value; break;
-                case 8:  rr.Q   = value; break;
-                case 9:  rr.P   = value; break;
-                case 10: rr.phi = value; break;
-            }
-        }
-        else if (type == 1 && parallel == 1) {
+        
+        (type == 1 && parallel == 1) {
             // ----- Parallel RL -----
             // V | f | R | L | Xl | Bl | Z | Y | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.L   = value; break;
-                case 4:  rr.Xl  = value; break;
-                case 5:  rr.Bl  = value; break;
-                case 6:  rr.Z   = value; break;
-                case 7:  rr.Y   = value; break;
-                case 8:  rr.I   = value; break;
-                case 9:  rr.S   = value; break;
-                case 10: rr.Q   = value; break;
-                case 11: rr.P   = value; break;
-                case 12: rr.phi = value; break;
-            }
-        }
-        else if (type == 2 && parallel == 0) {
+       
+        type == 2 && parallel == 0) {
             // ----- Series RC -----
             // V | f | R | C | Xc | Z | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.C   = value; break;
-                case 4:  rr.Xc  = value; break;
-                case 5:  rr.Z   = value; break;
-                case 6:  rr.I   = value; break;
-                case 7:  rr.S   = value; break;
-                case 8:  rr.Q   = value; break;
-                case 9:  rr.P   = value; break;
-                case 10: rr.phi = value; break;
-            }
-        }
-        else if (type == 2 && parallel == 1) {
+      
+       type == 2 && parallel == 1) {
             // ----- Parallel RC -----
             // V | f | R | C | Xc | Bc | Z | Y | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.C   = value; break;
-                case 4:  rr.Xc  = value; break;  
-                case 5:  rr.Bc  = value; break;
-                case 6:  rr.Z   = value; break;
-                case 7:  rr.Y   = value; break;
-                case 8:  rr.I   = value; break;
-                case 9:  rr.S   = value; break;
-                case 10: rr.Q   = value; break;
-                case 11: rr.P   = value; break;
-                case 12: rr.phi = value; break;
-            }
-        }
-        else if(type == 3 && parallel == 0) {
+         
+        (type == 3 && parallel == 0) {
             // ----- Series RLC -----
             // V | f | R | C | Xc | L | Xl | Z | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.C   = value; break;
-                case 4:  rr.Xc  = value; break;  
-                case 5:  rr.L   = value; break;
-                case 6:  rr.Xl  = value; break;
-                case 7:  rr.Z   = value; break;
-                case 8:  rr.I   = value; break;
-                case 9:  rr.S   = value; break;
-                case 10: rr.Q   = value; break;
-                case 11: rr.P   = value; break;
-                case 12: rr.phi = value; break;
-            }
-        }
-        else if (type == 3 && parallel == 1) {
+            
+        
+        (type == 3 && parallel == 1) {
             // ----- Parallel RLC -----
             // V | f | R | G | C | Xc | Bc | L | Xl | Bl | Z | Y | I | S | Q | P | phi
-            switch (i) {
-                case 0:  rr.V   = value; break;
-                case 1:  rr.f   = value; break;
-                case 2:  rr.R   = value; break;
-                case 3:  rr.G   = value; break;
-                case 4:  rr.C   = value; break;
-                case 5:  rr.Xc  = value; break;  
-                case 6:  rr.Bc  = value; break;
-                case 7:  rr.L   = value; break;
-                case 8:  rr.Xl  = value; break;
-                case 9:  rr.Bl  = value; break;
-                case 10: rr.Z   = value; break;
-                case 11: rr.Y   = value; break;
-                case 12: rr.I   = value; break;
-                case 13: rr.S   = value; break;
-                case 14: rr.Q   = value; break;
-                case 15: rr.P   = value; break;
-                case 16: rr.phi = value; break;
-            }
-        }
+        */
     }
 
     return rr;
