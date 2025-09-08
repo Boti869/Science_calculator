@@ -13,8 +13,8 @@ int initOhmLaws() {
     
     wprintf(L"0 0 0 0 to exit\n");
     while (1) {
-    wprintf(L"                            Voltage | Resistance | Current | Power |  (with spaces)\n"
-            "Enter 0 in place of unknown: ");
+    wprintf(L"                            Voltage | Resistance | Current | Power\n"
+            L"COMMA to separate values, eg.: V=230, I=2\n");
     fgets(buffer, 100, stdin);
     buffer[strcspn(buffer, "\n")] = '\0';
    
@@ -53,7 +53,7 @@ int initOhmLaws() {
 int series_setup(int type, int parallel) {
     char buffer[256];
     wprintf(L"Enter a letter to exit (break the code)\n"
-        L"COMMA to separate values, eg.: V=230, I=2, R=115\n");
+        L"COMMA to separate values, eg.: V=230, I=2, Q=115\n");
 
     while (1) {
         // Pick prompt dynamically

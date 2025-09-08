@@ -78,6 +78,27 @@ int up_low(const char *s1, const char *s2) {
     return (unsigned char)*s1 - (unsigned char)*s2;
 }
 
+double apply_prefix(char *str) {
+    char *end;
+    double value = strtod(str, &end);
+
+    while (isspace((unsigned char)*end)) end++;
+
+    if (up_low(end, "P") == 0) return value * PETA;
+    if (up_low(end, "T") == 0) return value * TERA;
+    if (up_low(end, "G") == 0) return value * GIGA;
+    if (up_low(end, "M") == 0) return value * MEGA;
+    if (up_low(end, "k") == 0) return value * KILO;
+    if (up_low(end, "m") == 0) return value * MILI;
+    if (up_low(end, "u") == 0 || up_low(end, "µ") == 0) return value * MIKRO;
+    if (up_low(end, "n") == 0) return value * NANO;
+    if (up_low(end, "p") == 0) return value * PICO;
+    if (up_low(end, "f") == 0) return value * FEMTO;
+    if (up_low(end, "a") == 0) return value * ATTO;
+
+    return value;
+}
+
 Type value_of(char buffer[]) {
     Type rr = {0};
     const char *tokens[4] = { "V", "R", "I", "P" };
@@ -85,26 +106,39 @@ Type value_of(char buffer[]) {
     int out_count;
 
     for (int i = 0; i < 4; i++) {
-        char *token;
-        if (i == 0) {
-            token = strtok(buffer, " ");
-        } else {
-            token = strtok(NULL, " ");
-        }
-
+        char *token = (i == 0) ? strtok(buffer, ",") : strtok(NULL, ",");
         if (!token) break;
-
         double value;
-            shunting_yard(token, output, &out_count); 
-            value = evaluate_postfix(output, out_count);  
-        
+        while (isspace((unsigned char)*token)) token++;
 
-        switch (i) {
-            case 0: rr.voltage    = value; break;
-            case 1: rr.resistance = value; break;
-            case 2: rr.current    = value; break;
-            case 3: rr.power      = value; break;
+        char *equal = strchr(token, '=');
+        if (!equal) continue;
+        
+        *equal = '\0';
+        char *var = token;
+        char *expr = equal + 1;
+
+        while (isspace(*var)) var++;
+        char *end = var + strlen(var) - 1;
+        while (isspace(*expr)) expr++;
+        while (end > var && isspace((unsigned char)*end)) {
+            *end = '\0';
+            end--;
         }
+        while(isspace((unsigned char)*expr)) expr++;
+        if(up_low(expr, "pi") == 0) {
+            value = PI;
+        } else if (up_low(expr, "C") == 0) {
+            value = LIGHT;
+        } else {
+        shunting_yard(expr, output, &out_count);
+        value = evaluate_postfix(output, out_count);
+        
+        }
+        if (up_low(var, "V") == 0) rr.voltage = value;
+        else if (up_low(var, "R") == 0) rr.resistance = value;
+        else if (up_low(var, "I") == 0) rr.current = value;
+        else if (up_low(var, "P") == 0) rr.power = value;
     }
 
     return rr;

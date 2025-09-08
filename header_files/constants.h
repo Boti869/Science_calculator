@@ -6,3 +6,18 @@
 #define RAD_TO_DEG(angle) ((angle)*(180.0/PI))
 #define OMEGA(freq) (2 * PI * (freq))
 #define LIGHT 299792458
+
+
+
+//prefixes
+#define PETA 1e15
+#define TERA 1e12
+#define GIGA 1e9
+#define MEGA 1e6
+#define KILO 1e3
+#define MILI 1e-3
+#define MIKRO 1e-6
+#define NANO 1e-9
+#define PICO 1e-12
+#define FEMTO 1e-15
+#define ATTO 1e-18
