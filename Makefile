@@ -1,4 +1,3 @@
-# Makefile (Windows cmd-friendly, also works on Unix)
 ifeq ($(OS),Windows_NT)
   EXE := .exe
   RUN := mycalc$(EXE)
@@ -17,7 +16,6 @@ TARGET := mycalc$(EXE)
 SRCS := \
   main.c \
   calcs/help.c \
-  calcs/basic-calc.c \
   calcs/Science-calc.c \
   electrics-c/electrical-laws.c \
   electrics-c/initLaws.c \

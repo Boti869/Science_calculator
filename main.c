@@ -1,4 +1,4 @@
-//gcc main.c calcs/help.c calcs/basic-calc.c calcs/Science-calc.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
+//gcc main.c calcs/help.c calcs/Science-calc.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
 #include"header_files/electrical-laws.h"
 #include"header_files/initLaws.h"
 #include"header_files/constants.h"
@@ -16,21 +16,19 @@ int main() {
     _setmode(_fileno(stdout), _O_U16TEXT); 
     int use_case;
     wprintf(L"Select a use case:\n"
-        "1. Basic calculator\n"
-        "2. Science calculator\n"
-        "3. Basic electrical calculations (V, R, I and P)\n"
-        "4. AC series calculators\n"
-        "5. AC parallel calculators\n");
+        "1. Science calculator\n"
+        "2. Basic electrical calculations (V, R, I and P)\n"
+        "3. AC series calculators\n"
+        "4. AC parallel calculators\n");
     
     scanf("%d", &use_case);
     getchar();
 
     switch(use_case) {
-        case 1: calc(); break;
-        case 2: sciCalc(); break;
-        case 3: initOhmLaws(); break;
-        case 4: ACseries(); break;
-        case 5: ACparallel(); break;
+        case 1: sciCalc(); break;
+        case 2: initOhmLaws(); break;
+        case 3: ACseries(); break;
+        case 4: ACparallel(); break;
         default: wprintf(L"That wasn't on the list...\n"
                         L"Try again ");
     }

@@ -26,8 +26,12 @@ double sciCalc() {
     shunting_yard(expr, output, &out_count);
 
     double result = evaluate_postfix(output, out_count);
+    wprintf(L"%f", result);
+    wprintf(L"   =   ");
     pretty_print(result, '\0');
-    }
+    wprintf(L"   =   %.6g", result);
+    wprintf(L"\n");    
+}
     return 0;
 }
 
