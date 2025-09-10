@@ -13,7 +13,7 @@
 double sciCalc() {
     char expr[256];
     wprintf(L"'exit' or 'quit' to exit\n");
-    while(1){
+    while(1) {
     wprintf(L"\nEnter expression: ");
     fgets(expr, sizeof(expr), stdin);
     expr[strcspn(expr, "\n")] = '\0';
@@ -58,94 +58,89 @@ void shunting_yard(const char *input, Token output[], int *out_count) {
     char stack[MAX_TOKENS];
     int stack_top = -1;
     *out_count = 0;
-
     int i = 0;
-    int expect_unary = 1; 
+    int expect_unary = 1;
 
     while (input[i] != '\0') {
         if (isspace((unsigned char)input[i])) { i++; continue; }
 
+        // check for pi
+        if (tolower((unsigned char)input[i]) == 'p' && tolower((unsigned char)input[i+1]) == 'i') {
+            output[*out_count].type = 'n';
+            output[*out_count].value = PI;
+            (*out_count)++;
+            i += 2;      // skip the 'pi' characters
+            expect_unary = 0;
+            continue;
+        }
+
+        // Numbers with optional SI prefixes and scientific notation
         if (isdigit((unsigned char)input[i]) || input[i] == '.') {
             char num[64];
             int j = 0;
+            double multiplier = 1.0;
 
             // integer part
-            if (isdigit((unsigned char)input[i])) {
-                while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) {
-                    num[j++] = input[i++];
-                }
-            }
-
+            while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) num[j++] = input[i++];
             // fractional
-            if (input[i] == '.') {
-                if (j < (int)sizeof(num)-1) num[j++] = input[i++];
-                while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) {
-                    num[j++] = input[i++];
-                }
-            }
-
-            // exponent
+            if (input[i] == '.') { num[j++] = input[i++]; while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) num[j++] = input[i++]; }
+            // scientific notation
             if (input[i] == 'e' || input[i] == 'E') {
-                if (j < (int)sizeof(num)-1) num[j++] = input[i++]; 
-                if (input[i] == '+' || input[i] == '-') {
-                    if (j < (int)sizeof(num)-1) num[j++] = input[i++];
-                }
-                if (!isdigit((unsigned char)input[i])) {
-                    fprintf(stderr, "Error: invalid scientific notation (no digits after exponent)\n");
-                    exit(1);
-                }
-                while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) {
-                    num[j++] = input[i++];
-                }
+                num[j++] = input[i++];
+                if (input[i] == '+' || input[i] == '-') num[j++] = input[i++];
+                while (isdigit((unsigned char)input[i]) && j < (int)sizeof(num)-1) num[j++] = input[i++];
             }
 
             num[j] = '\0';
 
+            // prefix
+            switch (tolower((unsigned char)input[i])) {
+                case 'p': multiplier = PICO; i++; break;
+                case 'n': multiplier = NANO;  i++; break;
+                case 'u': multiplier = MICRO;  i++; break;
+                case 'm': multiplier = MILLI;  i++; break;
+                case 'k': case 'K': multiplier = KILO;   i++; break;
+                case 'M': multiplier = MEGA;   i++; break;
+                case 'G': multiplier = GIGA;   i++; break;
+                case 'T': multiplier = TERA;  i++; break;
+                case 'P': multiplier = PETA;  i++; break;
+                default: break;
+            }
+
             char *endptr;
             double val = strtod(num, &endptr);
-            if (endptr == num) {
-                fprintf(stderr, "Error: failed to parse number '%s'\n", num);
-                exit(1);
-            }
+            if (endptr == num) { fprintf(stderr, "Error: failed to parse number '%s'\n", num); exit(1); }
+            val *= multiplier;
 
             output[*out_count].type = 'n';
             output[*out_count].value = val;
             (*out_count)++;
-            expect_unary = 0; // next token should be binary operator or )
+            expect_unary = 0;
             continue;
         }
 
         // Parentheses
-        if (input[i] == '(') {
-            stack[++stack_top] = input[i++];
-            expect_unary = 1; // after '(' a unary is allowed
-            continue;
-        }
+        if (input[i] == '(') { stack[++stack_top] = input[i++]; expect_unary = 1; continue; }
         if (input[i] == ')') {
             while (stack_top >= 0 && stack[stack_top] != '(') {
                 output[*out_count].type = 'o';
                 output[*out_count].op = stack[stack_top--];
                 (*out_count)++;
             }
-            if (stack_top >= 0 && stack[stack_top] == '(') stack_top--;
-            else { fprintf(stderr, "Error: mismatched parentheses\n"); exit(1); }
+            if (stack_top < 0) { fprintf(stderr, "Error: mismatched parentheses\n"); exit(1); }
+            stack_top--; // pop '('
             i++;
-            expect_unary = 0; // after ')' expect binary operator or another ')'
+            expect_unary = 0;
             continue;
         }
 
-        // Operators (including unary + / -)
+        // Operators
         if (strchr("+-*/^", input[i])) {
             char raw = input[i++];
             char op;
-            if ((raw == '+' || raw == '-') && expect_unary) {
-                // treat as unary
-                op = (raw == '-') ? 'u' : 'p';
-            } else {
-                op = raw; // binary operator
-            }
+            if ((raw == '+' || raw == '-') && expect_unary) op = (raw == '-') ? 'u' : 'p';
+            else op = raw;
 
-            // pop operators from stack to output while they have higher precedence
             while (stack_top >= 0 && is_operator_char(stack[stack_top]) &&
                   ((precedence(stack[stack_top]) > precedence(op)) ||
                    (precedence(stack[stack_top]) == precedence(op) && !is_right_assoc(op)))) {
@@ -153,9 +148,8 @@ void shunting_yard(const char *input, Token output[], int *out_count) {
                 output[*out_count].op = stack[stack_top--];
                 (*out_count)++;
             }
-
             stack[++stack_top] = op;
-            expect_unary = 1; // after an operator, next + or - could be unary
+            expect_unary = 1;
             continue;
         }
 
@@ -184,13 +178,10 @@ double evaluate_postfix(Token output[], int out_count) {
         } else if (output[i].type == 'o') {
             char op = output[i].op;
             if (op == 'u' || op == 'p') {
-                // unary: need one operand
                 if (top < 0) { fprintf(stderr, "Error: insufficient operands for unary operator\n"); exit(1); }
                 double v = stack[top--];
-                if (op == 'u') stack[++top] = -v;
-                else stack[++top] = +v; // unary plus: no-op
+                stack[++top] = (op == 'u') ? -v : +v;
             } else {
-                // binary ops
                 if (top < 1) { fprintf(stderr, "Error: insufficient operands\n"); exit(1); }
                 double b = stack[top--];
                 double a = stack[top--];
@@ -200,9 +191,7 @@ double evaluate_postfix(Token output[], int out_count) {
                     case '*': stack[++top] = a * b; break;
                     case '/': stack[++top] = a / b; break;
                     case '^': stack[++top] = pow(a, b); break;
-                    default:
-                        fprintf(stderr, "Error: unknown operator '%c'\n", op);
-                        exit(1);
+                    default: fprintf(stderr, "Error: unknown operator '%c'\n", op); exit(1);
                 }
             }
         }

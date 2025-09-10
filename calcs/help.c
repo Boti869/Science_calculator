@@ -78,27 +78,6 @@ int up_low(const char *s1, const char *s2) {
     return (unsigned char)*s1 - (unsigned char)*s2;
 }
 
-double apply_prefix(char *str) {
-    char *end;
-    double value = strtod(str, &end);
-
-    while (isspace((unsigned char)*end)) end++;
-
-    if (up_low(end, "P") == 0) return value * PETA;
-    if (up_low(end, "T") == 0) return value * TERA;
-    if (up_low(end, "G") == 0) return value * GIGA;
-    if (up_low(end, "M") == 0) return value * MEGA;
-    if (up_low(end, "k") == 0) return value * KILO;
-    if (up_low(end, "m") == 0) return value * MILI;
-    if (up_low(end, "u") == 0 || up_low(end, "µ") == 0) return value * MIKRO;
-    if (up_low(end, "n") == 0) return value * NANO;
-    if (up_low(end, "p") == 0) return value * PICO;
-    if (up_low(end, "f") == 0) return value * FEMTO;
-    if (up_low(end, "a") == 0) return value * ATTO;
-
-    return value;
-}
-
 Type value_of(char buffer[]) {
     Type rr = {0};
     const char *tokens[4] = { "V", "R", "I", "P" };

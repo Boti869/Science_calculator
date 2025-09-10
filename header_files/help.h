@@ -33,7 +33,6 @@ int up_low(const char *s1, const char *s2);
 Type value_of(char buffer[]);
 void print_results(Outputs *out, int type, int parallel);
 Inputs parseInputs(char buffer[], const char *tokens[], int count, int type, int parallel);
-double apply_prefix(char *str);
 Inputs RLsCalc(char buffer[]);
 Inputs RCsCalc(char buffer[]);
 Inputs RLpCalc(char buffer[]);
