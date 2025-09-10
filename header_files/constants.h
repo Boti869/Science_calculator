@@ -11,6 +11,7 @@
 
 
 //prefixes
+#define EXA 1e18
 #define PETA 1e15
 #define TERA 1e12
 #define GIGA 1e9

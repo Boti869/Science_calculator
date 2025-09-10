@@ -26,7 +26,7 @@ double sciCalc() {
     shunting_yard(expr, output, &out_count);
 
     double result = evaluate_postfix(output, out_count);
-    wprintf(L"%f", result);
+    wprintf(L"%.12f", result);
     wprintf(L"   =   ");
     pretty_print(result, '\0');
     wprintf(L"   =   %.6g", result);
@@ -94,7 +94,9 @@ void shunting_yard(const char *input, Token output[], int *out_count) {
             num[j] = '\0';
 
             // prefix
-            switch (tolower((unsigned char)input[i])) {
+            switch ((unsigned char)input[i]) {
+                case 'a' : multiplier = ATTO;  i++; break;
+                case 'f': multiplier = FEMTO; i++; break;
                 case 'p': multiplier = PICO; i++; break;
                 case 'n': multiplier = NANO;  i++; break;
                 case 'u': multiplier = MICRO;  i++; break;
@@ -104,6 +106,7 @@ void shunting_yard(const char *input, Token output[], int *out_count) {
                 case 'G': multiplier = GIGA;   i++; break;
                 case 'T': multiplier = TERA;  i++; break;
                 case 'P': multiplier = PETA;  i++; break;
+                case 'E': multiplier = EXA;  i++; break;
                 default: break;
             }
 
