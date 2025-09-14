@@ -10,7 +10,8 @@
 #include <math.h>
 #include <locale.h>
 
-double sciCalc() {
+
+int sciCalc() {
     char expr[256];
     wprintf(L"'exit' or 'quit' to exit\n");
     while(1) {

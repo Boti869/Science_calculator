@@ -5,6 +5,7 @@ typedef struct {
     char type;    // 'n' for number, 'o' for operator
     double value; // if type == 'n'
     char op;      // if type == 'o'
+    char algebra; // if type == 'a'
 } Token;
 
 typedef struct {
