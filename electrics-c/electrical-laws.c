@@ -23,13 +23,13 @@ void applyOhmLaw(double voltage, double resistance, double current, double power
 
     //Resistance
     if (resistance == 0 && voltage != 0 && current != 0) resistance = voltage / current;
-    if (resistance == 0 && power != 0 && current != 0)   resistance = power / (current * current);
-    if (resistance == 0 && voltage != 0 && power != 0)   resistance = (voltage * voltage) / power;
+    if (resistance == 0 && power != 0 && current != 0)   resistance = power / pow(current, 2);
+    if (resistance == 0 && voltage != 0 && power != 0)   resistance = pow(voltage, 2) / power;
 
     //Power
     if (power == 0 && voltage != 0 && current != 0)      power = voltage * current;
-    if (power == 0 && voltage != 0 && resistance != 0)   power = (voltage * voltage) / resistance;
-    if (power == 0 && current != 0 && resistance != 0)   power = resistance * (current * current);
+    if (power == 0 && voltage != 0 && resistance != 0)   power = pow(voltage, 2) / resistance;
+    if (power == 0 && current != 0 && resistance != 0)   power = resistance * pow(current, 2);
     
     pretty_print(voltage, 'V');
     wprintf(L"\n");
