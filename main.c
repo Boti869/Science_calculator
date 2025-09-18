@@ -3,6 +3,7 @@
 #include"header_files/initLaws.h"
 #include"header_files/constants.h"
 #include"header_files/calc.h"
+#include"header_files/algebra.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<locale.h>
@@ -19,7 +20,8 @@ int main() {
         "1. Science calculator\n"
         "2. Basic electrical calculations (V, R, I and P)\n"
         "3. AC series calculators\n"
-        "4. AC parallel calculators\n");
+        "4. AC parallel calculators\n"
+        "5. Algebra solver (linear and quadratic)\n");
     
     scanf("%d", &use_case);
     getchar();
@@ -29,6 +31,7 @@ int main() {
         case 2: initOhmLaws(); break;
         case 3: ACseries(); break;
         case 4: ACparallel(); break;
+        case 5: algebraCalc(); break;
         default: wprintf(L"That wasn't on the list...\n"
                         L"Try again ");
     }

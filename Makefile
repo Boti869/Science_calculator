@@ -17,6 +17,7 @@ SRCS := \
   main.c \
   calcs/help.c \
   calcs/Science-calc.c \
+  calcs/algebra.c \
   electrics-c/electrical-laws.c \
   electrics-c/initLaws.c \
   electrics-c/AC-basics.c
@@ -24,7 +25,7 @@ SRCS := \
 OBJDIR := build
 
 # Flatten object names into build/ to avoid nested mkdir complexity
-# e.g. calcs/basic-calc.c -> build/basic-calc.o
+# e.g. src/thing.c -> build/thing.o
 OBJS := $(foreach s,$(SRCS),$(OBJDIR)/$(notdir $(s:.c=.o)))
 DEPS := $(OBJS:.o=.d)
 
