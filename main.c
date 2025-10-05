@@ -1,4 +1,4 @@
-//gcc main.c calcs/help.c calcs/Science-calc.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
+//gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
 #include"header_files/electrical-laws.h"
 #include"header_files/initLaws.h"
 #include"header_files/constants.h"
@@ -21,7 +21,7 @@ int main() {
         "2. Basic electrical calculations (V, R, I and P)\n"
         "3. AC series calculators\n"
         "4. AC parallel calculators\n"
-        "5. Algebra solver (linear and quadratic)\n");
+        "5. Algebra solver:  BETA, DOESN'T WORK\n");
     
     scanf("%d", &use_case);
     getchar();

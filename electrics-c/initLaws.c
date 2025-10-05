@@ -13,47 +13,47 @@ int initOhmLaws() {
     
     wprintf(L"0 0 0 0 to exit\n");
     while (1) {
-    wprintf(L"                            Voltage | Resistance | Current | Power\n"
-            L"COMMA to separate values, eg.: V=230, I=2\n");
-    fgets(buffer, 100, stdin);
-    buffer[strcspn(buffer, "\n")] = '\0';
-   
-    Type input = value_of(buffer);
+        wprintf(L"                            Voltage | Resistance | Current | Power\n"
+                L"COMMA to separate values, eg.: V=230, I=2\n");
+        fgets(buffer, 100, stdin);
+        buffer[strcspn(buffer, "\n")] = '\0';
     
-    double voltage = input.voltage, resistance = input.resistance, current = input.current, power = input.power;
-    if (voltage == 0 && resistance == 0 && current == 0 && power == 0) {
-        wprintf(L"Exiting....\n");
-        return 0; 
-    }
+        Type input = value_of(buffer);
+        
+        double voltage = input.voltage, resistance = input.resistance, current = input.current, power = input.power;
+        if (voltage == 0 && resistance == 0 && current == 0 && power == 0) {
+            wprintf(L"Exiting....\n");
+            return 0; 
+        }
 
-    int nozero = 0;
-    if (voltage != 0.00) nozero++;
-    if (resistance != 0.00) nozero++;
-    if (current != 0.00) nozero++;
-    if (power != 0.00) nozero++;
-    
-    if(nozero < 2 ){
-        wprintf(L"Not enough data provided.\n");
-        fflush(stdin);
-        continue; 
-    }
-    if (resistance < 0 || power < 0) {
-        wprintf(L"Resistance cannot be negative in Ohm's Law\n");
-        continue; 
-    }
-    if (voltage != 0 && resistance != 0 && current != 0 && power != 0) {
-        wprintf(L"All values provided, nothing to calculate.\n");
-        continue;
-    }
-    applyOhmLaw(voltage, resistance, current, power);
+        int nozero = 0;
+        if (voltage != 0.00) nozero++;
+        if (resistance != 0.00) nozero++;
+        if (current != 0.00) nozero++;
+        if (power != 0.00) nozero++;
+        
+        if(nozero < 2 ){
+            wprintf(L"Not enough data provided.\n");
+            fflush(stdin);
+            continue; 
+        }
+        if (resistance < 0 || power < 0) {
+            wprintf(L"Resistance cannot be negative in Ohm's Law\n");
+            continue; 
+        }
+        if (voltage != 0 && resistance != 0 && current != 0 && power != 0) {
+            wprintf(L"All values provided, nothing to calculate.\n");
+            continue;
+        }
+        applyOhmLaw(voltage, resistance, current, power);
     }
 }
 
 // ---------- Setup ----------
 int series_setup(int type, int parallel) {
     char buffer[256];
-    wprintf(L"Enter a letter to exit (break the code)\n"
-        L"COMMA to separate values, eg.: V=230, I=2, Q=115\n");
+    wprintf(L"Enter 'quit' or 'exit' to exit\n"
+        L"COMMA to separate values, eg.: V = 230, I=2, Q=115\n");
 
     while (1) {
         // Pick prompt dynamically
@@ -87,11 +87,8 @@ int series_setup(int type, int parallel) {
                 case 2: result = RCpCalc(buffer); break;
                 case 3: result = RLCpCalc(buffer); break;
             }
-
-        if (result.V == 0 && result.f == 0 && result.R == 0 && 
-            result.L == 0 && result.Xl == 0 && result.C == 0 && result.Xc == 0 && 
-            result.Z == 0 && result.I == 0 && result.P == 0 && result.phi == 0 &&
-            result.S == 0 && result.Q == 0 && result.G == 0 && result.Bc == 0 && result.Bl == 0) {
+        
+        if (strcmp(buffer, "exit") == 0 || strcmp(buffer, "quit") == 0) {
             wprintf(L"Exiting...\n");
             return 0;
         }

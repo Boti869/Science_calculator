@@ -15,25 +15,24 @@ int sciCalc() {
     char expr[256];
     wprintf(L"'exit' or 'quit' to exit\n");
     while(1) {
-    wprintf(L"\nEnter expression: ");
-    fgets(expr, sizeof(expr), stdin);
-    expr[strcspn(expr, "\n")] = '\0';
-    if (strcmp(expr, "exit") == 0 || strcmp(expr, "quit") == 0) {
-        wprintf(L"Exiting...\n");
-        return 0;
+        wprintf(L"\nEnter expression: ");
+        fgets(expr, sizeof(expr), stdin);
+        expr[strcspn(expr, "\n")] = '\0';
+        if (strcmp(expr, "exit") == 0 || strcmp(expr, "quit") == 0) {
+            wprintf(L"Exiting...\n");
+            return 0;
+        }
+        Token output[MAX_TOKENS];
+        int out_count;
+        shunting_yard(expr, output, &out_count);
+        double result = evaluate_postfix(output, out_count);
+        
+        wprintf(L"%.12f", result);
+        wprintf(L"   =   ");
+        pretty_print(result, '\0');
+        wprintf(L"   =   %.6g", result);
+        wprintf(L"\n");    
     }
-    Token output[MAX_TOKENS];
-    int out_count;
-    shunting_yard(expr, output, &out_count);
-
-    double result = evaluate_postfix(output, out_count);
-    wprintf(L"%.12f", result);
-    wprintf(L"   =   ");
-    pretty_print(result, '\0');
-    wprintf(L"   =   %.6g", result);
-    wprintf(L"\n");    
-}
-    return 0;
 }
 
 int is_operator_char(char c) {
