@@ -6,4 +6,4 @@ gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electri
 mycalc
 ```
 ### License
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See LICENSE for details.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See [LICENSE](https://github.com/Boti869/Science_calculator/blob/main/LICENSE) for details.
