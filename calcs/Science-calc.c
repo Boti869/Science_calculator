@@ -10,7 +10,7 @@
 #include <math.h>
 #include <locale.h>
 
-
+double ans = 0;
 int sciCalc() {
     char expr[256];
     wprintf(L"'exit' or 'quit' to exit\n");
@@ -31,7 +31,9 @@ int sciCalc() {
         wprintf(L"   =   ");
         pretty_print(result, '\0');
         wprintf(L"   =   %.6g", result);
-        wprintf(L"\n");    
+        wprintf(L"\n");
+        
+        ans = result;
     }
 }
 
@@ -63,7 +65,15 @@ void shunting_yard(const char *input, Token output[], int *out_count) {
 
     while (input[i] != '\0') {
         if (isspace((unsigned char)input[i])) { i++; continue; }
-
+        //check for 'ans'
+        if (tolower((unsigned char)input[i]) == 'a' && tolower((unsigned char)input[i+1]) == 'n' && tolower((unsigned char)input[i+2]) == 's') {
+            output[*out_count].type = 'n';
+            output[*out_count].value = ans;
+            (*out_count)++;
+            i += 3;      // skip the 'ans' characters
+            expect_unary = 0;
+            continue;
+        }
         // check for pi
         if (tolower((unsigned char)input[i]) == 'p' && tolower((unsigned char)input[i+1]) == 'i') {
             output[*out_count].type = 'n';
@@ -202,17 +212,4 @@ double evaluate_postfix(Token output[], int out_count) {
 
     if (top != 0) { fprintf(stderr, "Error: invalid expression\n"); exit(1); }
     return stack[0];
-}
-
-void add_number(const char *input, int *i, Token *output, int *out_count) {
-    char buffer[64];  
-
-    while (isdigit(input[*i]) || input[*i] == '.' || input[*i] == 'e' || input[*i] == 'E') {
-    buffer[(*i)++] = input[(*i)++];
-}
-    buffer[(*i)] = '\0';
-    output[(*out_count)].type = 'n';
-    output[(*out_count)].value = atof(buffer);   
-    (*out_count)++;
-
 }

@@ -1,5 +1,6 @@
 #pragma once 
 #include"../header_files/help.h"
+#include"../header_files/constants.h"
 
 // One term of a polynomial (e.g. 2x^2)
 typedef struct {
@@ -12,13 +13,7 @@ typedef struct {
     char algebra;   // if type == 'a' 
 } Poly;
 
-typedef struct {
-    char left[256];
-    char right[256];
-} Sides;
-
 int algebraCalc();
 void split(char input[], char **left, char **right);
 void algebra_parser(const char input[], Poly output[], int *out_count);
-Poly collect_terms(Poly *p, Poly terms[], int n);
-Sides subtract_poly(Poly lhs, int lhs_count, Poly rhs, int rhs_count);
+void subtract_poly(Poly lhs[MAX_TOKENS], int lhs_count, Poly rhs[MAX_TOKENS], int rhs_count);

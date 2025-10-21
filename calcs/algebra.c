@@ -33,8 +33,27 @@ int algebraCalc(){
         algebra_parser(left, output_left, &out_count_left);
         algebra_parser(right, output_right, &out_count_right);
 
-    }
+        //Demo output
+        for(int i = 0; i < out_count_left; i++){
+            if(output_left[i].type == 'a'){
+                wprintf(L"Left Term %d: Coeff: %.2f, Var: %s, Exp: %d\n", i+1, output_left[i].coeff, output_left[i].var, output_left[i].exponent);
+            } else if(output_left[i].type == 'n'){
+                wprintf(L"Left Term %d: Constant: %.2f\n", i+1, output_left[i].constant);
+            } else if(output_left[i].type == 'o'){
+                wprintf(L"Left Term %d: Operator: %c\n", i+1, output_left[i].op);
+            }
+        }
+        for(int i = 0; i < out_count_right; i++){
+            if(output_right[i].type == 'a'){
+                wprintf(L"Right Term %d: Coeff: %.2f, Var: %s, Exp: %d\n", i+1, output_right[i].coeff, output_right[i].var, output_right[i].exponent);
+            } else if(output_right[i].type == 'n'){
+                wprintf(L"Right Term %d: Constant: %.2f\n", i+1, output_right[i].constant);
+            } else if(output_right[i].type == 'o'){
+                wprintf(L"Right Term %d: Operator: %c\n", i+1, output_right[i].op);
+            }
+        }
 
+    }
 }
 void split(char input[], char **left, char **right) {
     char *equal = strchr(input, '=');
@@ -192,8 +211,40 @@ void algebra_parser(const char input[], Poly output[], int *out_count) {
 }
 
 
-/*Sides subtract_poly(Poly lhs, int lhs_count, Poly rhs, int rhs_count) {
-    Sides result = {0};
+void subtract_poly(Poly lhs[MAX_TOKENS], int lhs_count, Poly rhs[MAX_TOKENS], int rhs_count) {
+    int i = 0;
+    double bigest = -INFINITY;
+    while (rhs_count > 0 && lhs_count > 0) {
+        if(rhs[i].type == 'a') {
+            for (int j = 0; j < rhs_count; j++) {
+                if (rhs[j].exponent > bigest) bigest = rhs[j].exponent;
+            }
+                for(int k = 0; k < (lhs_count&&rhs_count); k++){
+                    if(strcmp(lhs[k].var, rhs[i].var) == 0 && lhs[k].exponent == rhs[i].exponent){
+                        lhs[k].coeff -= rhs[i].coeff;
+                        // Remove rhs term
+                        for(int m = i; m < rhs_count - 1; m++){
+                            rhs[m] = rhs[m + 1];
+                        }
+                }
+            } 
+            i++;
+            rhs_count--;
+        }
+        if(rhs[i].type == 'n'){
+            i = 0;
+            for(int n = 0; n < rhs_count; n++){                
+                if(bigest == 0 || bigest == 1){
+                    rhs[i].constant = -lhs[i].constant;
+                    i++;
+                }
+                else if(bigest > 1){
+                    lhs[i].constant = -rhs[i].constant;
+                    i++;
+                }
+                lhs_count -= i;
+            }
+        }
+    }
+}
     
-
-}*/
