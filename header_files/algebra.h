@@ -16,4 +16,4 @@ typedef struct {
 int algebraCalc();
 void split(char input[], char **left, char **right);
 void algebra_parser(const char input[], Poly output[], int *out_count);
-void subtract_poly(Poly lhs[MAX_TOKENS], int lhs_count, Poly rhs[MAX_TOKENS], int rhs_count);
+void subtract_poly(Poly lhs[MAX_TOKENS], int *lhs_count, Poly rhs[MAX_TOKENS], int *rhs_count);

@@ -52,7 +52,30 @@ int algebraCalc(){
                 wprintf(L"Right Term %d: Operator: %c\n", i+1, output_right[i].op);
             }
         }
-
+        subtract_poly(output_left, &out_count_left, output_right, &out_count_right);
+        
+        // Demo output after subtraction
+        for(int i = 0; i < out_count_left; i++){
+            if(output_left[i].type == 'a'){
+                wprintf(L"Left Term %d: Coeff: %.2f, Var: %s, Exp: %d\n", i+1, output_left[i].coeff, output_left[i].var, output_left[i].exponent);
+            } else if(output_left[i].type == 'n'){
+                wprintf(L"Left Term %d: Constant: %.2f\n", i+1, output_left[i].constant);
+            } else if(output_left[i].type == 'o'){
+                wprintf(L"Left Term %d: Operator: %c\n", i+1, output_left[i].op);
+            }
+        }
+        for(int i = 0; i < out_count_right; i++){
+            if(output_right[i].type == 'a'){
+                wprintf(L"Right Term %d: Coeff: %.2f, Var: %s, Exp: %d\n", i+1, output_right[i].coeff, output_right[i].var, output_right[i].exponent);
+            } else if(output_right[i].type == 'n'){
+                wprintf(L"Right Term %d: Constant: %.2f\n", i+1, output_right[i].constant);
+            } else if(output_right[i].type == 'o'){
+                wprintf(L"Right Term %d: Operator: %c\n", i+1, output_right[i].op);
+            }
+        }
+        /*works so far :)
+        fuckin hell I need to work on ts more
+        I had autumn break the last week and this is all I did ._.*/
     }
 }
 void split(char input[], char **left, char **right) {
@@ -211,40 +234,72 @@ void algebra_parser(const char input[], Poly output[], int *out_count) {
 }
 
 
-void subtract_poly(Poly lhs[MAX_TOKENS], int lhs_count, Poly rhs[MAX_TOKENS], int rhs_count) {
-    int i = 0;
-    double bigest = -INFINITY;
-    while (rhs_count > 0 && lhs_count > 0) {
-        if(rhs[i].type == 'a') {
-            for (int j = 0; j < rhs_count; j++) {
-                if (rhs[j].exponent > bigest) bigest = rhs[j].exponent;
+void subtract_poly(Poly lhs[MAX_TOKENS], int *lhs_count, Poly rhs[MAX_TOKENS], int *rhs_count) {
+    double biggest = 0;
+
+    // Find biggest exponent
+    for (int j = 0; j < *rhs_count || j < *lhs_count; j++) {
+        if (j < *rhs_count && rhs[j].exponent > biggest) biggest = rhs[j].exponent;
+        if (j < *lhs_count && lhs[j].exponent > biggest) biggest = lhs[j].exponent;
+    }
+
+    // Matchy terms
+    for (int i = 0; i < *rhs_count; i++) {
+        if (rhs[i].type != 'a') continue;
+        int matched = 0;
+
+        for (int k = 0; k < *lhs_count; k++) {
+            if (lhs[k].type == 'a' &&
+                strcmp(lhs[k].var, rhs[i].var) == 0 &&
+                lhs[k].exponent == rhs[i].exponent) {
+                lhs[k].coeff -= rhs[i].coeff;
+                    rhs[i].coeff = 0; 
+                        rhs[i].exponent = 0;
+                           rhs[i].var[0] = '\0';
+                matched = 1;
+                break;
             }
-                for(int k = 0; k < (lhs_count&&rhs_count); k++){
-                    if(strcmp(lhs[k].var, rhs[i].var) == 0 && lhs[k].exponent == rhs[i].exponent){
-                        lhs[k].coeff -= rhs[i].coeff;
-                        // Remove rhs term
-                        for(int m = i; m < rhs_count - 1; m++){
-                            rhs[m] = rhs[m + 1];
-                        }
-                }
-            } 
-            i++;
-            rhs_count--;
         }
-        if(rhs[i].type == 'n'){
-            i = 0;
-            for(int n = 0; n < rhs_count; n++){                
-                if(bigest == 0 || bigest == 1){
-                    rhs[i].constant = -lhs[i].constant;
-                    i++;
-                }
-                else if(bigest > 1){
-                    lhs[i].constant = -rhs[i].constant;
-                    i++;
-                }
-                lhs_count -= i;
+
+        if (!matched) {
+            // Add negated RHS term to LHS
+            lhs[*lhs_count] = rhs[i];
+            lhs[*lhs_count].coeff = -rhs[i].coeff;
+            (*lhs_count)++;
+        }
+    }
+
+    // Move constants based on degree
+    if (biggest <= 1) {
+        // if linear
+        for (int i = 0; i < *lhs_count; i++) {
+            if (lhs[i].type == 'n') {
+                rhs[*rhs_count] = lhs[i];
+                rhs[*rhs_count].constant = -lhs[i].constant;
+                rhs[*rhs_count].type = 'n';
+                (*rhs_count)++;
+                // remove from lhs
+                for (int j = i; j < *lhs_count - 1; j++)
+                    lhs[j] = lhs[j + 1];
+                (*lhs_count)--;
+                i--;
+            }
+        }
+    } else {
+        // quadratic or higher -> constants move to LHS
+        for (int i = 0; i < *rhs_count; i++) {
+            if (rhs[i].type == 'n') {
+                lhs[*lhs_count] = rhs[i];
+                lhs[*lhs_count].constant = -rhs[i].constant;
+                lhs[*lhs_count].type = 'n';
+                (*lhs_count)++;
+                // remove from rhs
+                for (int j = i; j < *rhs_count - 1; j++)
+                    rhs[j] = rhs[j + 1];
+                (*rhs_count)--;
+                i--;
             }
         }
     }
 }
-    
+ 
