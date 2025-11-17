@@ -58,20 +58,19 @@ int series_setup(int type, int parallel) {
     while (1) {
         // Pick prompt dynamically
         if (type == 1 && parallel == 0)
-            wprintf(L"Enter values for  V | f | R | L | Xl | Z | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | Vr | Vl | f | R | L | Xl | Z | I | S | Q | P | phi \n");
         else if (type == 1 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | L | Xl | Bl | Z | Y | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | f | R | L | Xl | Bl | Y | I | Ir | Il | S | Q | P | phi \n");
         else if (type == 2 && parallel == 0)
-            wprintf(L"Enter values for  V | f | R | C | Xc | Z | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | Vr | Vc | f | R | C | Xc | Z | I | S | Q | P | phi \n");
         else if (type == 2 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | C | Xc | Bc | Z | Y | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | f | R | C | Xc | Bc | Y | I | Ir | Ic | S | Q | P | phi \n");
         else if (type == 3 && parallel == 0)
-            wprintf(L"Enter values for  V | f | R | C | Xc | L | Xl | Z | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | Vr | Vl | Vc | f | R | C | Xc | L | Xl | Z | I | S | Q | P | phi \n");
         else if (type == 3 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | G | C | Xc | Bc | L | Xl | Bl | Z | Y | I | S | Q | P | phi \n");
+            wprintf(L"Enter values for  V | f | R | G | C | Xc | Bc | L | Xl | Bl | Y | I | Ir | Il | Ic | S | Q | P | phi \n");
 
         fgets(buffer, sizeof(buffer), stdin);
-        // Remove newline
         if (buffer[strlen(buffer) - 1] == '\n') buffer[strlen(buffer) - 1] = '\0';
 
         Inputs result = {0};
@@ -105,14 +104,22 @@ int series_setup(int type, int parallel) {
         if (result.phi) nozero++;
         if (result.P) nozero++;
         if (result.Q) nozero++;
+        if(parallel == 0){
+            if (result.Vr) nozero++;
+            if ((type == 1 || type == 3) && result.Vl) nozero++;
+            if ((type == 2 || type == 3) && result.Vc) nozero++;
+        }
         if (parallel == 1) {
             if (result.G) nozero++;
             if ((type == 1 || type == 3) && result.Bl) nozero++;
             if ((type == 2 || type == 3) && result.Bc) nozero++;
             if (result.Y) nozero++;
+            if (result.Ir) nozero++;
+            if (result.Il) nozero++;
+            if (result.Ic) nozero++;
         };
         
-        if (nozero < 3) {
+        if (nozero < 2) {
             wprintf(L"Not enough data provided.\n");
             continue;
         }

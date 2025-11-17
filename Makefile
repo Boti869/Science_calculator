@@ -20,7 +20,9 @@ SRCS := \
   calcs/algebra.c \
   electrics-c/electrical-laws.c \
   electrics-c/initLaws.c \
-  electrics-c/AC-basics.c
+  electrics-c/AC-basics.c\
+  electrics-c/RLC_circuits/Series.c \
+  electrics-c/RLC_circuits/Parallel.c 
 
 OBJDIR := build
 

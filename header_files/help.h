@@ -15,7 +15,8 @@ typedef struct {
 } Type;
 
 typedef struct{
-    double V, f, R, L, Xl, Z, I, S, Q, P, phi, C, Xc, Bl, Bc, G, Y;
+    double V, Vr, Vl, Vc, f, R, L, Xl, Z, I, Ir, Il, Ic, S, Q, P, phi, C, Xc, Bl, Bc, G, Y;
+    int phi_deg, phi_min, phi_sec;
 }Inputs;
 
 typedef Inputs Outputs;
@@ -32,7 +33,7 @@ double pretty_print(double num, wchar_t unit);
 int up_low(const char *s1, const char *s2);
 Type value_of(char buffer[]);
 void print_results(Outputs *out, int type, int parallel);
-Inputs parseInputs(char buffer[], const char *tokens[], int count, int type, int parallel);
+Inputs parseInputs(char buffer[], int count, int type, int parallel);
 Inputs RLsCalc(char buffer[]);
 Inputs RCsCalc(char buffer[]);
 Inputs RLpCalc(char buffer[]);

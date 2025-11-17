@@ -1,8 +1,9 @@
 # Science_calculator
-This is a science calculator specifically for electrical calculations (and possibly physics in later updates). I'm really excited to make this, my goal is to make it a real object one day and be able to use in school. HUGE help for me in my mechatronics studies
+This is a science calculator specifically for electrical calculations (and possibly physics in later updates). 
+Calculate RLC and variations of this circuit! Parallel or in series? No problem! 
 ## Compile and run
 ```
-gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
+gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c electrics-c/RLC_circuits/Series.c electrics-c/RLC_circuits/Parallel.c -o mycalc
 mycalc
 ```
 ### License

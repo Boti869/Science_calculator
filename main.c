@@ -1,4 +1,4 @@
-//gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c -o mycalc
+//gcc main.c calcs/help.c calcs/Science-calc.c calcs/algebra.c electrics-c/electrical-laws.c electrics-c/initLaws.c electrics-c/AC-basics.c electrics-c/RLC_circuits/Series.c electrics-c/RLC_circuits/Parallel.c -o mycalc
 #include"header_files/electrical-laws.h"
 #include"header_files/initLaws.h"
 #include"header_files/constants.h"

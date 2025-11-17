@@ -2,6 +2,8 @@
 #include"../header_files/constants.h"
 #include"../header_files/help.h"
 #include"../header_files/AC-basic.h"
+#include "../header_files/Parallel-AC.h"
+#include "../header_files/Series-AC.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<math.h>
@@ -43,43 +45,77 @@ void applyOhmLaw(double voltage, double resistance, double current, double power
 }
 
 int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
-    // all have these
-    out->V   = in->V;
-    out->I   = in->I;
-    out->R   = in->R;
-    out->f   = in->f;
-    out->phi = in->phi;
-    out->P   = in->P;
-    out->Z   = in->Z;
-    out->Q   = in->Q;
-    out->S   = in->S;
+
+    // Always appear
+    SET(out->V,   in->V);
+    SET(out->I,   in->I);
+    SET(out->R,   in->R);
+    SET(out->f,   in->f);
+    SET(out->phi, in->phi);
+    SET(out->P,   in->P);
+    SET(out->Q,   in->Q);
+    SET(out->S,   in->S);
 
     switch (type) {
         case SERIES_RL:
+            SET(out->L,  in->L);
+            SET(out->Xl, in->Xl);
+            SET(out->Vl, in->Vl);
+            SET(out->Vr, in->Vr);
+            SET(out->Z, in->Z);
+            break;
+
         case PARALLEL_RL:
-            out->L  = in->L;
-            out->Xl = in->Xl;
-            if (type == PARALLEL_RL) {out->Bl = in->Bl; out->G = in->G; out->Y = in->Y;}
+            SET(out->L,  in->L);
+            SET(out->Xl, in->Xl);
+            SET(out->Bl, in->Bl);
+            SET(out->G,  in->G);
+            SET(out->Y,  in->Y);
+            SET(out->Il, in->Il);
+            SET(out->Ir, in->Ir);
             break;
 
         case SERIES_RC:
-        case PARALLEL_RC:
-            out->C  = in->C;
-            out->Xc = in->Xc;
-            if (type == PARALLEL_RC) {out->Bc = in->Bc; out->G = in->G; out->Y = in->Y;}
+            SET(out->C,  in->C);
+            SET(out->Xc, in->Xc);
+            SET(out->Vc, in->Vc);
+            SET(out->Vr, in->Vr);
+            SET(out->Z,  in->Z);
             break;
+
+        case PARALLEL_RC:
+            SET(out->C,  in->C);
+            SET(out->Xc, in->Xc);
+            SET(out->Bc, in->Bc);
+            SET(out->G,  in->G);
+            SET(out->Y,  in->Y);
+            SET(out->Ic, in->Ic);
+            SET(out->Ir, in->Ir);
+            break;
+
         case SERIES_RLC:
+            SET(out->L,  in->L);
+            SET(out->C,  in->C);
+            SET(out->Xl, in->Xl);
+            SET(out->Xc, in->Xc);
+            SET(out->Vl, in->Vl);
+            SET(out->Vc, in->Vc);
+            SET(out->Vr, in->Vr);
+            SET(out->Z,  in->Z);
+            break;
+
         case PARALLEL_RLC:
-            out->L  = in->L;
-            out->C  = in->C;
-            out->Xl = in->Xl;
-            out->Xc = in->Xc;
-            if (type == PARALLEL_RLC) {
-                out->Bl = in->Bl;
-                out->Bc = in->Bc;
-                out->G  = in->G;
-                out->Y  = in->Y;
-            }
+            SET(out->L,  in->L);
+            SET(out->C,  in->C);
+            SET(out->Xl, in->Xl);
+            SET(out->Xc, in->Xc);
+            SET(out->Bl, in->Bl);
+            SET(out->Bc, in->Bc);
+            SET(out->G,  in->G);
+            SET(out->Y,  in->Y);
+            SET(out->Il, in->Il);
+            SET(out->Ic, in->Ic);
+            SET(out->Ir, in->Ir);
             break;
     }
 
@@ -90,15 +126,14 @@ int solve_circuit(const Inputs *in, Outputs *out, CircuitType type) {
         progress = false;
 
         switch (type) {
-            case SERIES_RL:     get_AC_values(out, 1, 0, &progress); break;
-            case SERIES_RC:     get_AC_values(out, 2, 0, &progress); break;
-            case SERIES_RLC:    get_AC_values(out, 3, 0, &progress); break;
-            case PARALLEL_RL:   get_AC_values(out, 1, 1, &progress); break;
-            case PARALLEL_RC:   get_AC_values(out, 2, 2, &progress); break;
-            case PARALLEL_RLC:  get_AC_values(out, 3, 3, &progress); break;
+            case SERIES_RL:     solve_series_AC(out, 1, &progress); break;
+            case SERIES_RC:     solve_series_AC(out, 2, &progress); break;
+            case SERIES_RLC:    solve_series_AC(out, 3, &progress); break;
+            case PARALLEL_RL:   solve_parallel_AC(out, 1, &progress); break;
+            case PARALLEL_RC:   solve_parallel_AC(out, 2, &progress); break;
+            case PARALLEL_RLC:  solve_parallel_AC(out, 3, &progress); break;
 
         }
-
         iter++;
     }
 
