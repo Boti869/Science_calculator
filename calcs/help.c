@@ -217,4 +217,3 @@ Inputs RLCsCalc(char buffer[]) {
 Inputs RLCpCalc(char buffer[]) {
     return parseInputs(buffer, 19, 3, 1);
 }
-

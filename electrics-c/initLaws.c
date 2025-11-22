@@ -38,13 +38,21 @@ int initOhmLaws() {
             continue; 
         }
         if (resistance < 0 || power < 0) {
-            wprintf(L"Resistance cannot be negative in Ohm's Law\n");
+            wprintf(L"Resistance or power cannot be negative in Ohm's Law\n");
             continue; 
         }
         if (voltage != 0 && resistance != 0 && current != 0 && power != 0) {
             wprintf(L"All values provided, nothing to calculate.\n");
+            wprintf(L"Checking for consistency...\n");
+        }
+
+        if(validate_AC_inputs(voltage, resistance, current) == false){
             continue;
         }
+        if(validate_AC_inputs(power, voltage, current) == false){
+            continue;
+        }
+
         applyOhmLaw(voltage, resistance, current, power);
     }
 }
@@ -58,17 +66,17 @@ int series_setup(int type, int parallel) {
     while (1) {
         // Pick prompt dynamically
         if (type == 1 && parallel == 0)
-            wprintf(L"Enter values for  V | Vr | Vl | f | R | L | Xl | Z | I | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | Vr | Vl | f | R | L | Xl | Z | I | S | Q | P | phi \n");
         else if (type == 1 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | L | Xl | Bl | Y | I | Ir | Il | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | f | R | L | Xl | Bl | Y | I | Ir | Il | S | Q | P | phi \n");
         else if (type == 2 && parallel == 0)
-            wprintf(L"Enter values for  V | Vr | Vc | f | R | C | Xc | Z | I | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | Vr | Vc | f | R | C | Xc | Z | I | S | Q | P | phi \n");
         else if (type == 2 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | C | Xc | Bc | Y | I | Ir | Ic | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | f | R | C | Xc | Bc | Y | I | Ir | Ic | S | Q | P | phi \n");
         else if (type == 3 && parallel == 0)
-            wprintf(L"Enter values for  V | Vr | Vl | Vc | f | R | C | Xc | L | Xl | Z | I | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | Vr | Vl | Vc | f | R | C | Xc | L | Xl | Z | I | S | Q | P | phi \n");
         else if (type == 3 && parallel == 1)
-            wprintf(L"Enter values for  V | f | R | G | C | Xc | Bc | L | Xl | Bl | Y | I | Ir | Il | Ic | S | Q | P | phi \n");
+            wprintf(L"\nEnter values for  V | f | R | G | C | Xc | Bc | L | Xl | Bl | Y | I | Ir | Il | Ic | S | Q | P | phi \n");
 
         fgets(buffer, sizeof(buffer), stdin);
         if (buffer[strlen(buffer) - 1] == '\n') buffer[strlen(buffer) - 1] = '\0';
@@ -92,32 +100,7 @@ int series_setup(int type, int parallel) {
             return 0;
         }
 
-        int nozero = 0;
-        if (result.V) nozero++;
-        if (result.f) nozero++;
-        if (result.R) nozero++;
-        if ((type == 1 || type == 3) && (result.L || result.Xl)) nozero++;
-        if ((type == 2 || type == 3) && (result.C || result.Xc)) nozero++;
-        if (result.Z) nozero++;
-        if (result.I) nozero++;
-        if (result.S) nozero++;
-        if (result.phi) nozero++;
-        if (result.P) nozero++;
-        if (result.Q) nozero++;
-        if(parallel == 0){
-            if (result.Vr) nozero++;
-            if ((type == 1 || type == 3) && result.Vl) nozero++;
-            if ((type == 2 || type == 3) && result.Vc) nozero++;
-        }
-        if (parallel == 1) {
-            if (result.G) nozero++;
-            if ((type == 1 || type == 3) && result.Bl) nozero++;
-            if ((type == 2 || type == 3) && result.Bc) nozero++;
-            if (result.Y) nozero++;
-            if (result.Ir) nozero++;
-            if (result.Il) nozero++;
-            if (result.Ic) nozero++;
-        };
+        int nozero = nozero_count(&result);
         
         if (nozero < 2) {
             wprintf(L"Not enough data provided.\n");
@@ -125,13 +108,21 @@ int series_setup(int type, int parallel) {
         }
 
         if ((result.R < 0) || (result.L < 0) || (result.Xl < 0) || (result.Z < 0) ||
-            (result.S < 0) || (result.phi < 0) || (result.f < 0) ||
-            (result.C < 0) || (result.Xc < 0) || (result.P < 0) || (result.Q < 0) ||
-            (result.G < 0) || (result.Bc < 0) || (result.Bl < 0 || (result.Y < 0))) {
+            (result.S < 0) || (result.f < 0) || (result.C < 0) || (result.Xc < 0) || 
+            (result.P < 0) || (result.Q < 0) || (result.G < 0) || (result.Bc < 0) || 
+            (result.Bl < 0 || (result.Y < 0))) {
             wprintf(L"Only V and I can be negative.\n");
             continue;
         }
-
+        if(result.phi > 90.00){
+            wprintf(L"Phase angle cannot be greater than 90 degrees in RLC circuits.\n");
+            continue;
+        }
+        
+        if(check_triangle(result, type, parallel) == false){
+            continue;
+        }
+        
         // Solve
         if (parallel == 0) {
             if (type == 1) solve_circuit(&result, (Outputs *)&result, SERIES_RL);
@@ -192,4 +183,141 @@ int ACparallel() {
     }
 
     return 0;
+}
+int nozero_count(Inputs *in){
+    int count = 0;
+    #define CHECK(x) if(is_known(in->x)) count++
+
+    CHECK(V);
+    CHECK(Vr);
+    CHECK(Vl);
+    CHECK(Vc);
+    CHECK(f);
+    CHECK(R);
+    CHECK(G);
+    CHECK(L);
+    CHECK(Xl);
+    CHECK(Bl);
+    CHECK(Z);
+    CHECK(Y);
+    CHECK(I);
+    CHECK(Ir);
+    CHECK(Il);
+    CHECK(Ic);
+    CHECK(S);
+    CHECK(Q);
+    CHECK(P);
+    CHECK(phi);
+    CHECK(C);
+    CHECK(Xc);
+    CHECK(Bc);
+
+    #undef CHECK
+
+    return count;
+}
+
+bool validate_AC_inputs(double top, double bottomL, double bottomR) {
+    double valid = 1e-6;
+
+    bool t = is_known(top);
+    bool bL = is_known(bottomL);
+    bool bR = is_known(bottomR);
+
+    if(t && bL && bR) {
+        if(fabs(top - (bottomL * bottomR)) > valid) {
+            wprintf(L"Input values don't match\n");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool validate_with_phi(double a , double b, double c, double phi) {
+    double valid = 1e-6;
+
+    bool A = is_known(a);
+    bool B = is_known(b);
+    bool C = is_known(c);
+    bool PHI = is_known(phi);
+    double phi_rad = DEG_TO_RAD(phi);
+
+    if(A && B && C) {
+        if(fabs(c - (hypot(a, b))) > valid) {
+            wprintf(L"Input values don't check out on a2 + b2 = c2\n");
+            return false;
+        }
+    }
+    if(A && B && C && PHI) {
+        if(fabs(sin(phi_rad) - (a/c)) > valid) {
+            wprintf(L"Input values don't check out on sin(phi) = a/c\n");
+            return false;
+        }
+        if(fabs(cos(phi_rad) - (b/c)) > valid) {
+            wprintf(L"Input values don't check out on cos(phi) = b/c\n");
+            return false;
+        }
+    }
+    return true;
+}
+
+bool check_triangle(Inputs result, int type, int parallel) {
+    double X = 0.0;
+        if(result.Xl > result.Xc) X = result.Xl - result.Xc;
+        else X = result.Xc - result.Xl;
+
+        double V = 0.0;
+        if(result.Vl > result.Vc) V = result.Vl - result.Vc;
+        else V = result.Vc - result.Vl;
+
+        double I = 0.0;
+        if(result.Il > result.Ic) I = result.Il - result.Ic;
+        else I = result.Ic - result.Il;
+
+        double B = result.Bl - result.Bc;
+
+        validate_AC_inputs(result.S, result.V, result.I);
+        validate_with_phi(result.P, result.Q, result.S, result.phi);
+        if(parallel == 0){
+            validate_AC_inputs(result.V, result.Z, result.I);
+            validate_AC_inputs(result.Vr, result.R, result.I);
+            if(type == 1){
+                validate_AC_inputs(result.Vl, result.Xl, result.I);
+                validate_with_phi(result.Vl, result.Vr, result.V, result.phi);
+                validate_with_phi(result.Xl, result.R, result.Z, result.phi);
+            }
+            else if(type == 2){
+                validate_AC_inputs(result.Vc, result.Xc, result.I);
+                validate_with_phi(result.Vc, result.Vr, result.V, result.phi);
+                validate_with_phi(result.Xc, result.R, result.Z, result.phi);
+            }
+            else if(type == 3){
+                validate_AC_inputs(result.Vl, result.Xl, result.I);
+                validate_AC_inputs(result.Vc, result.Xc, result.I);
+                validate_with_phi(V, result.Vr, result.V, result.phi);
+                validate_with_phi(X, result.R, result.Z, result.phi);
+            } 
+        }
+        else{
+            validate_AC_inputs(result.I, result.Y, result.V);
+            validate_AC_inputs(result.Ir, result.G, result.V);
+            if(type == 1){
+                validate_AC_inputs(result.Il, result.Bl, result.V);
+                validate_with_phi(result.Il, result.Ir, result.I, result.phi);
+                validate_with_phi(result.Bl, result.G, result.Y, result.phi);
+            }
+            else if(type == 2){
+                validate_AC_inputs(result.Ic, result.Bc, result.V);
+                validate_with_phi(result.Ic, result.Ir, result.I, result.phi);
+                validate_with_phi(result.Bc, result.G, result.Y, result.phi);
+            }
+            else if(type == 3){
+                validate_AC_inputs(result.Il, result.Bl, result.V);
+                validate_AC_inputs(result.Ic, result.Bc, result.V);
+                validate_with_phi(I, result.Ir, result.I, result.phi);
+                validate_with_phi(B, result.G, result.Y, result.phi);
+
+            }
+        }
+    return true;
 }
