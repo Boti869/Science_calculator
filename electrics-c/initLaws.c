@@ -301,21 +301,36 @@ bool check_triangle(Inputs result, int type, int parallel) {
         else{
             validate_AC_inputs(result.I, result.Y, result.V);
             validate_AC_inputs(result.Ir, result.G, result.V);
+            if(result.G != 0.0){
+                validate_AC_inputs(1.0 / result.R, result.G, 1.0);
+            }
             if(type == 1){
                 validate_AC_inputs(result.Il, result.Bl, result.V);
                 validate_with_phi(result.Il, result.Ir, result.I, result.phi);
                 validate_with_phi(result.Bl, result.G, result.Y, result.phi);
+                if(result.Bl != 0.0){
+                    validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0);
+                }
             }
             else if(type == 2){
                 validate_AC_inputs(result.Ic, result.Bc, result.V);
                 validate_with_phi(result.Ic, result.Ir, result.I, result.phi);
                 validate_with_phi(result.Bc, result.G, result.Y, result.phi);
+                if(result.Bc != 0.0){
+                    validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0);
+                }
             }
             else if(type == 3){
                 validate_AC_inputs(result.Il, result.Bl, result.V);
                 validate_AC_inputs(result.Ic, result.Bc, result.V);
                 validate_with_phi(I, result.Ir, result.I, result.phi);
                 validate_with_phi(B, result.G, result.Y, result.phi);
+                if(result.Bl != 0.0){
+                    validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0);
+                }
+                if(result.Bc != 0.0){
+                    validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0);
+                }
 
             }
         }
