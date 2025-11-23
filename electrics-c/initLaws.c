@@ -45,11 +45,11 @@ int initOhmLaws() {
             wprintf(L"All values provided, nothing to calculate.\n");
             wprintf(L"Checking for consistency...\n");
         }
-
-        if(validate_AC_inputs(voltage, resistance, current) == false){
+            bool progress = true;
+        if(validate_AC_inputs(voltage, resistance, current, &progress) == false){
             continue;
         }
-        if(validate_AC_inputs(power, voltage, current) == false){
+        if(validate_AC_inputs(power, voltage, current, &progress) == false){
             continue;
         }
 
@@ -217,7 +217,7 @@ int nozero_count(Inputs *in){
     return count;
 }
 
-bool validate_AC_inputs(double top, double bottomL, double bottomR) {
+bool validate_AC_inputs(double top, double bottomL, double bottomR, bool *progress) {
     double valid = 1e-6;
 
     bool t = is_known(top);
@@ -230,10 +230,10 @@ bool validate_AC_inputs(double top, double bottomL, double bottomR) {
             return false;
         }
     }
-    return true;
+    return progress;
 }
 
-bool validate_with_phi(double a , double b, double c, double phi) {
+bool validate_with_phi(double a , double b, double c, double phi, bool *progress) {
     double valid = 1e-6;
 
     bool A = is_known(a);
@@ -258,81 +258,118 @@ bool validate_with_phi(double a , double b, double c, double phi) {
             return false;
         }
     }
-    return true;
+    return progress;
 }
 
+bool validate_Xl_C(double X, double f, double L, bool *progress, char type) {
+    double valid = 1e-6;
+
+    bool XX = is_known(X);
+    bool F = is_known(f);
+    bool LL = is_known(L);
+
+
+    if(XX && F && LL) {
+        if(type == 'L') {
+            if(fabs(X - (OMEGA(f) * L)) > valid) {
+                wprintf(L"Input values don't match Xl = 2πfL\n");
+                return false;
+            }
+        }
+        else if(type == 'C') {
+            if(fabs(X - (1.0 / (OMEGA(f) * L))) > valid) {
+                wprintf(L"Input values don't match Xc = 1/(2πfC)\n");
+                return false;
+            }
+        }
+    }
+    return progress;
+}            
+
 bool check_triangle(Inputs result, int type, int parallel) {
-    double X = 0.0;
-        if(result.Xl > result.Xc) X = result.Xl - result.Xc;
-        else X = result.Xc - result.Xl;
+    bool progress = true;
 
-        double V = 0.0;
-        if(result.Vl > result.Vc) V = result.Vl - result.Vc;
-        else V = result.Vc - result.Vl;
+    while (progress) {
+        double X = 0.0;
+            if(result.Xl > result.Xc) X = result.Xl - result.Xc;
+            else X = result.Xc - result.Xl;
 
-        double I = 0.0;
-        if(result.Il > result.Ic) I = result.Il - result.Ic;
-        else I = result.Ic - result.Il;
+            double V = 0.0;
+            if(result.Vl > result.Vc) V = result.Vl - result.Vc;
+            else V = result.Vc - result.Vl;
 
-        double B = result.Bl - result.Bc;
+            double I = 0.0;
+            if(result.Il > result.Ic) I = result.Il - result.Ic;
+            else I = result.Ic - result.Il;
 
-        validate_AC_inputs(result.S, result.V, result.I);
-        validate_with_phi(result.P, result.Q, result.S, result.phi);
-        if(parallel == 0){
-            validate_AC_inputs(result.V, result.Z, result.I);
-            validate_AC_inputs(result.Vr, result.R, result.I);
-            if(type == 1){
-                validate_AC_inputs(result.Vl, result.Xl, result.I);
-                validate_with_phi(result.Vl, result.Vr, result.V, result.phi);
-                validate_with_phi(result.Xl, result.R, result.Z, result.phi);
+            double B = result.Bl - result.Bc;
+
+            if(type == 1 || type == 3){
+                validate_Xl_C(result.Xl, result.f, result.L, &progress, 'L');
             }
-            else if(type == 2){
-                validate_AC_inputs(result.Vc, result.Xc, result.I);
-                validate_with_phi(result.Vc, result.Vr, result.V, result.phi);
-                validate_with_phi(result.Xc, result.R, result.Z, result.phi);
+            if(type == 2 || type == 3){
+                validate_Xl_C(result.Xc, result.f, result.C, &progress, 'C');
             }
-            else if(type == 3){
-                validate_AC_inputs(result.Vl, result.Xl, result.I);
-                validate_AC_inputs(result.Vc, result.Xc, result.I);
-                validate_with_phi(V, result.Vr, result.V, result.phi);
-                validate_with_phi(X, result.R, result.Z, result.phi);
-            } 
-        }
-        else{
-            validate_AC_inputs(result.I, result.Y, result.V);
-            validate_AC_inputs(result.Ir, result.G, result.V);
-            if(result.G != 0.0){
-                validate_AC_inputs(1.0 / result.R, result.G, 1.0);
+           
+            validate_AC_inputs(result.S, result.V, result.I, &progress);
+            validate_with_phi(result.P, result.Q, result.S, result.phi, &progress);
+            if(parallel == 0){
+                validate_AC_inputs(result.V, result.Z, result.I, &progress);
+                validate_AC_inputs(result.Vr, result.R, result.I, &progress);
+                if(type == 1){
+                    validate_AC_inputs(result.Vl, result.Xl, result.I, &progress);
+                    validate_with_phi(result.Vl, result.Vr, result.V, result.phi, &progress);
+                    validate_with_phi(result.Xl, result.R, result.Z, result.phi, &progress);
+                }
+                else if(type == 2){
+                    validate_AC_inputs(result.Vc, result.Xc, result.I, &progress);
+                    validate_with_phi(result.Vc, result.Vr, result.V, result.phi, &progress);
+                    validate_with_phi(result.Xc, result.R, result.Z, result.phi, &progress);
+                }
+                else if(type == 3){
+                    validate_AC_inputs(result.Vl, result.Xl, result.I, &progress);
+                    validate_AC_inputs(result.Vc, result.Xc, result.I, &progress);
+                    validate_with_phi(V, result.Vr, result.V, result.phi, &progress);
+                    validate_with_phi(X, result.R, result.Z, result.phi, &progress);
+                } 
             }
-            if(type == 1){
-                validate_AC_inputs(result.Il, result.Bl, result.V);
-                validate_with_phi(result.Il, result.Ir, result.I, result.phi);
-                validate_with_phi(result.Bl, result.G, result.Y, result.phi);
-                if(result.Bl != 0.0){
-                    validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0);
+            else{
+                validate_AC_inputs(result.I, result.Y, result.V, &progress);
+                validate_AC_inputs(result.Ir, result.G, result.V, &progress);
+                if(result.G != 0.0){
+                    validate_AC_inputs(1.0 / result.R, result.G, 1.0, &progress);
+                }
+                if(type == 1){
+                    validate_AC_inputs(result.Il, result.Bl, result.V, &progress);
+                    validate_with_phi(result.Il, result.Ir, result.I, result.phi, &progress);
+                    validate_with_phi(result.Bl, result.G, result.Y, result.phi, &progress);
+                    if(result.Bl != 0.0){
+                        validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0, &progress);
+                    }
+                }
+                else if(type == 2){
+                    validate_AC_inputs(result.Ic, result.Bc, result.V, &progress);
+                    validate_with_phi(result.Ic, result.Ir, result.I, result.phi, &progress);
+                    validate_with_phi(result.Bc, result.G, result.Y, result.phi, &progress);
+                    if(result.Bc != 0.0){
+                        validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0, &progress);
+                    }
+                }
+                else if(type == 3){
+                    validate_AC_inputs(result.Il, result.Bl, result.V, &progress);
+                    validate_AC_inputs(result.Ic, result.Bc, result.V, &progress);
+                    validate_with_phi(I, result.Ir, result.I, result.phi, &progress);
+                    validate_with_phi(B, result.G, result.Y, result.phi, &progress);
+                    if(result.Bl != 0.0){
+                        validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0, &progress);
+                    }
+                    if(result.Bc != 0.0){
+                        validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0, &progress);
+                    }
+
                 }
             }
-            else if(type == 2){
-                validate_AC_inputs(result.Ic, result.Bc, result.V);
-                validate_with_phi(result.Ic, result.Ir, result.I, result.phi);
-                validate_with_phi(result.Bc, result.G, result.Y, result.phi);
-                if(result.Bc != 0.0){
-                    validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0);
-                }
-            }
-            else if(type == 3){
-                validate_AC_inputs(result.Il, result.Bl, result.V);
-                validate_AC_inputs(result.Ic, result.Bc, result.V);
-                validate_with_phi(I, result.Ir, result.I, result.phi);
-                validate_with_phi(B, result.G, result.Y, result.phi);
-                if(result.Bl != 0.0){
-                    validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0);
-                }
-                if(result.Bc != 0.0){
-                    validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0);
-                }
-
-            }
-        }
-    return true;
+        break;
+    }
+    return progress;
 }
