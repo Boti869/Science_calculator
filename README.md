@@ -1,6 +1,7 @@
 # Science_calculator
 This is a science calculator specifically for electrical calculations (and possibly physics in later updates).  
 Calculate RLC and variations of this circuit! Parallel or in series? No problem!  
+Menu driven, eneter values with comma separation  
 
 ## Compile and run
 To do this ou'll need gcc on you computer
