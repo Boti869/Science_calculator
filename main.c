@@ -4,6 +4,7 @@
 #include"header_files/constants.h"
 #include"header_files/calc.h"
 #include"header_files/algebra.h"
+#include"platform.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<locale.h>
@@ -12,9 +13,7 @@
 #include <io.h>
 
 int main() {
-    setlocale(LC_CTYPE, "");
-    setlocale(LC_NUMERIC, "C");
-    _setmode(_fileno(stdout), _O_U16TEXT); 
+    init_console();
     int use_case;
     wprintf(L"Select a use case:\n"
         "1. Science calculator\n"
@@ -25,15 +24,17 @@ int main() {
     
     scanf("%d", &use_case);
     getchar();
-
+    while(use_case < 1 || use_case > 5) {
+        wprintf(L"That wasn't on the list. Select a valid one: ");
+        scanf("%d", &use_case);
+        getchar();
+    }
     switch(use_case) {
         case 1: sciCalc(); break;
         case 2: initOhmLaws(); break;
         case 3: ACseries(); break;
         case 4: ACparallel(); break;
         case 5: algebraCalc(); break;
-        default: wprintf(L"That wasn't on the list...\n"
-                        L"Try again ");
     }
     return 0;
 }
