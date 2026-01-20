@@ -146,7 +146,8 @@ int ACseries() {
     int choice;
     scanf("%d", &choice);
     getchar(); 
-    switch (choice) {
+    int ch = valid_choice(choice);
+    switch (ch) {
         case 1: 
             series_setup(1, 0);
             break;
@@ -169,8 +170,9 @@ int ACparallel() {
 
     int choice;
     scanf("%d", &choice);
-    getchar(); 
-    switch (choice) {
+    getchar();
+    int ch = valid_choice(choice);
+    switch (ch) {
         case 1: 
             series_setup(1, 1);
             break;
@@ -244,7 +246,7 @@ bool validate_with_phi(double a , double b, double c, double phi, bool *progress
 
     if(A && B && C) {
         if(fabs(c - (hypot(a, b))) > valid) {
-            wprintf(L"Input values don't check out on a2 + b2 = c2\n");
+            wprintf(L"Input values don't check out on a^2 + b^2 = c^2\n");
             return false;
         }
     }
@@ -260,7 +262,31 @@ bool validate_with_phi(double a , double b, double c, double phi, bool *progress
     }
     return progress;
 }
+bool check_phi(double a , double b, double c, double phi, bool *progress) {
+    double valid = 1e-6;
 
+    bool A = is_known(a);
+    bool B = is_known(b);
+    bool C = is_known(c);
+    bool PHI = is_known(phi);
+    double phi_rad = DEG_TO_RAD(phi);
+
+    if(A && B && C && PHI) {
+        if(fabs(sin(phi_rad) - (a/c)) > valid) {
+            wprintf(L"Input values don't check out on sin(phi) = a/c\n");
+            return false;
+        }
+        if(fabs(cos(phi_rad) - (b/c)) > valid) {
+            wprintf(L"Input values don't check out on cos(phi) = b/c\n");
+            return false;
+        }
+        if(fabs(tan(phi_rad) - (a/b)) > valid) {
+            wprintf(L"Input values don't check out on tan(phi) = a/b\n");
+            return false;
+        }
+    }
+    return progress;
+}
 bool validate_Xl_C(double X, double f, double L, bool *progress, char type) {
     double valid = 1e-6;
 
@@ -315,26 +341,35 @@ bool check_triangle(Inputs result, int type, int parallel) {
             validate_with_phi(result.P, result.Q, result.S, result.phi, &progress);
             if(parallel == 0){
                 validate_AC_inputs(result.V, result.Z, result.I, &progress);
+                check_phi(result.V, result.Vr, result.V, result.phi, &progress);
                 validate_AC_inputs(result.Vr, result.R, result.I, &progress);
+                check_phi(result.Vr, result.R, result.Z, result.phi, &progress);
                 if(type == 1){
                     validate_AC_inputs(result.Vl, result.Xl, result.I, &progress);
                     validate_with_phi(result.Vl, result.Vr, result.V, result.phi, &progress);
+                    check_phi(result.Vl, result.Vr, result.V, result.phi, &progress);
                     validate_with_phi(result.Xl, result.R, result.Z, result.phi, &progress);
+                    check_phi(result.Xl, result.R, result.Z, result.phi, &progress);
                 }
                 else if(type == 2){
                     validate_AC_inputs(result.Vc, result.Xc, result.I, &progress);
                     validate_with_phi(result.Vc, result.Vr, result.V, result.phi, &progress);
+                    check_phi (result.Vc, result.Vr, result.V, result.phi, &progress);
                     validate_with_phi(result.Xc, result.R, result.Z, result.phi, &progress);
+                    check_phi(result.Xc, result.R, result.Z, result.phi, &progress);
                 }
                 else if(type == 3){
                     validate_AC_inputs(result.Vl, result.Xl, result.I, &progress);
                     validate_AC_inputs(result.Vc, result.Xc, result.I, &progress);
                     validate_with_phi(V, result.Vr, result.V, result.phi, &progress);
+                    check_phi(V, result.Vr, result.V, result.phi, &progress);
                     validate_with_phi(X, result.R, result.Z, result.phi, &progress);
+                    check_phi(X, result.R, result.Z, result.phi, &progress);
                 } 
             }
             else{
                 validate_AC_inputs(result.I, result.Y, result.V, &progress);
+                check_phi(result.I, result.Y, result.V, result.phi, &progress);
                 validate_AC_inputs(result.Ir, result.G, result.V, &progress);
                 if(result.G != 0.0){
                     validate_AC_inputs(1.0 / result.R, result.G, 1.0, &progress);
@@ -342,7 +377,9 @@ bool check_triangle(Inputs result, int type, int parallel) {
                 if(type == 1){
                     validate_AC_inputs(result.Il, result.Bl, result.V, &progress);
                     validate_with_phi(result.Il, result.Ir, result.I, result.phi, &progress);
+                    check_phi(result.Il, result.Ir, result.I, result.phi, &progress);
                     validate_with_phi(result.Bl, result.G, result.Y, result.phi, &progress);
+                    check_phi(result.Bl, result.G, result.Y, result.phi, &progress);
                     if(result.Bl != 0.0){
                         validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0, &progress);
                     }
@@ -350,7 +387,9 @@ bool check_triangle(Inputs result, int type, int parallel) {
                 else if(type == 2){
                     validate_AC_inputs(result.Ic, result.Bc, result.V, &progress);
                     validate_with_phi(result.Ic, result.Ir, result.I, result.phi, &progress);
+                    check_phi(result.Ic, result.Ir, result.I, result.phi, &progress);
                     validate_with_phi(result.Bc, result.G, result.Y, result.phi, &progress);
+                    check_phi(result.Bc, result.G, result.Y, result.phi, &progress);
                     if(result.Bc != 0.0){
                         validate_AC_inputs(1.0 / result.Xc, result.Bc, 1.0, &progress);
                     }
@@ -359,7 +398,9 @@ bool check_triangle(Inputs result, int type, int parallel) {
                     validate_AC_inputs(result.Il, result.Bl, result.V, &progress);
                     validate_AC_inputs(result.Ic, result.Bc, result.V, &progress);
                     validate_with_phi(I, result.Ir, result.I, result.phi, &progress);
+                    check_phi(I, result.Ir, result.I, result.phi, &progress);
                     validate_with_phi(B, result.G, result.Y, result.phi, &progress);
+                    check_phi(B, result.G, result.Y, result.phi, &progress);
                     if(result.Bl != 0.0){
                         validate_AC_inputs(1.0 / result.Xl, result.Bl, 1.0, &progress);
                     }
@@ -372,4 +413,13 @@ bool check_triangle(Inputs result, int type, int parallel) {
         break;
     }
     return progress;
+}
+
+int valid_choice(int choice){
+    while(choice < 1 || choice > 3){
+        wprintf(L"Invalid choice, please choose 1, 2 or 3\n");
+        scanf("%d", &choice);
+        getchar(); 
+    }
+    return choice;
 }

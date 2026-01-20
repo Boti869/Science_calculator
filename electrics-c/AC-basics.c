@@ -45,20 +45,12 @@ bool L_C_AC(Outputs *out, int type, bool *progress) {
             out->L = out->Xl / OMEGA(out->f);
             *progress = true;
         }
-        else if (!is_known(out->Xl) && is_known(out->L) && is_known(out->f)) {
-            out->Xl = OMEGA(out->f) * out->L;
-            *progress = true;
-        }
         else return *progress;
 
     }
     if ((type == 2 || type == 3)){
         if (!is_known(out->C) && is_known(out->Xc) && is_known(out->f)) {
             out->C = 1.0 / (OMEGA(out->f) * out->Xc);
-            *progress = true;
-        }
-        else if (!is_known(out->Xc) && is_known(out->C) && is_known(out->f)) {
-            out->Xc = 1.0 / (OMEGA(out->f) * out->C);
             *progress = true;
         }
         else return *progress;
