@@ -22,7 +22,8 @@ SRCS := \
   electrics-c/initLaws.c \
   electrics-c/AC-basics.c\
   electrics-c/RLC_circuits/Series.c \
-  electrics-c/RLC_circuits/Parallel.c 
+  electrics-c/RLC_circuits/Parallel.c \
+  electrics-c/check_input.c
 
 OBJDIR := build
 
